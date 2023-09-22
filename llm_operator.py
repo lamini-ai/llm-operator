@@ -32,11 +32,17 @@ class Operator:
         self,
         query: str,
     ):
-        input = {"query": query, "operations": str(self.operations)}
+        operation_descriptions = [
+            f"{name}: {val['description']}" for name, val in self.operations.items()
+        ]
+        input = {"query": query, "operations": str(operation_descriptions)}
         output_type = {
             "operation": "str",
         }
-        selected_operation = self.operation_selector(input, output_type)
+        print("selecting between operations: ", operation_descriptions)
+        selected_operation = self.operation_selector(
+            input, output_type, stop_tokens=["\n", ":"]
+        )
         return selected_operation
 
     def select_arguments(
@@ -45,6 +51,7 @@ class Operator:
         operation: str,
     ):
         print("operation: ", operation)
+        print("argument_query: ", query)
         arguments = self.get_operation_to_run(operation)["arguments"]
         input = {
             "query": query,
@@ -53,8 +60,7 @@ class Operator:
         }
         output_type = arguments
         generated_arugments = self.argument_generator(
-            input,
-            output_type,
+            input, output_type, stop_tokens=["\n"]
         )
         return generated_arugments
 
@@ -76,24 +82,26 @@ class Operator:
             "final_response": "str",
         }
         if self.final_operation:
-            return self.final_operation(
-                input,
-                output_type,
-            )
+            return self.final_operation(input, output_type, stop_tokens=None)
         output = self.vocal_llm(
             input,
             output_type,
         )
         return output
 
-    def run(self, query: str):
+    def run(self, query: str, pass_directly: bool = True):
         # First query the engine with the query string for which operations and arugments to use
         selected_operation = self.select_operations(query)
-        # Then query for which arguments to use
-        generated_arugments = self.select_arguments(query, selected_operation)
-        # Then run the operations
-        action = self.get_operation_to_run(selected_operation)["action"]
-        tool_output = action(**generated_arugments)
+        if pass_directly:
+            action = self.get_operation_to_run(selected_operation)["action"]
+            tool_output = action(query)
+            generated_arugments = {}
+        else:
+            # Then query for which arguments to use
+            generated_arugments = self.select_arguments(query, selected_operation)
+            # Then run the operations
+            action = self.get_operation_to_run(selected_operation)["action"]
+            tool_output = action(**generated_arugments)
         # Then run the final operation or final llm
         final_message = self.get_final_message(
             query, selected_operation, generated_arugments, tool_output
