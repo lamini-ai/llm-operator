@@ -7,23 +7,6 @@ os.environ["LLAMA_ENVIRONMENT"] = "STAGING"
 person_age = None
 
 
-def setAge(age: int):
-    """set the age of a person"""
-    print("setAge: ", age)
-    global person_age
-    person_age = age
-
-
-person_height = None
-
-
-def setHeight(height: int):
-    """set the height of a person in inches"""
-    print("setHeight: ", height)
-    global person_height
-    person_height = height
-
-
 os.environ["LLAMA_ENVIRONMENT"] = "STAGING"
 prompt_template = """\
 Respond to the message using function calls. You have access to the following tools:

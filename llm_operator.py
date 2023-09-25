@@ -1,117 +1,46 @@
-from llama import Lamini
+# from llama import Lamini
 from typing import Callable, Dict, List, Optional, Any
+import re
+
+class Operation:
+    def __init__(self, name):
+        self.name = name
+
+    def run(self, terminal_task = False):
+        prompt = f'''For the given input, perform the task. {self.description}'''
+        return self.llm("operator", "meta-llama/Llama-2-13b-chat-hf", prompt)
 
 
 class Operator:
-    def __init__(
-        self, operation_selector: Lamini, argument_generator: Lamini, vocal_llm: Lamini
-    ) -> None:
-        self.operations = {}
-        self.argument_generator = argument_generator
-        self.operation_selector = operation_selector
-        self.vocal_llm = vocal_llm
-        self.final_operation = None
+    def __init__(self, name):
+        self.name = ""
+        self.function = eval(name)
+        self.prompt = ""
+        self.llm = None
 
-    def add_operation(
-        self,
-        operation,
-        description: Optional[str] = None,
-    ):
-        name = operation.__name__
-        description = description or operation.__doc__
-        arguments = {
-            key: str(value) for key, value in operation.__annotations__.items()
-        }
-        self.operations[name] = {
-            "action": operation,
-            "description": description,
-            "arguments": arguments,
-        }
+    def __inject(self, original_string, pattern, replacement_string):
+        return re.sub(pattern, replacement_string, original_string)
 
-    def select_operations(
-        self,
-        query: str,
-    ):
-        operation_descriptions = [
-            f"{name}: {val['description']}" for name, val in self.operations.items()
-        ]
-        input = {"query": query, "operations": str(operation_descriptions)}
-        output_type = {
-            "operation": "str",
-        }
-        print("selecting between operations: ", operation_descriptions)
-        selected_operation = self.operation_selector(
-            input, output_type, stop_tokens=["\n", ":"]
-        )
-        return selected_operation
+    def add_operations(self, cls, ops: List[Operation]):
+        if len(ops) == 0:
+            raise Exception("Atleast 1 operation needs to be passed")
 
-    def select_arguments(
-        self,
-        query: str,
-        operation: str,
-    ):
-        print("operation: ", operation)
-        print("argument_query: ", query)
-        arguments = self.get_operation_to_run(operation)["arguments"]
-        input = {
-            "query": query,
-            "operation": operation["operation"],
-            # "args": arguments,
-        }
-        output_type = arguments
-        generated_arugments = self.argument_generator(
-            input, output_type, stop_tokens=["\n"]
-        )
-        return generated_arugments
+        tools_str = ""
+        for op in ops:
+            if hasattr(cls, op.name) and callable(getattr(cls, op.name)):
+                result = getattr(cls, op.name)()
+                print(result)
+            else:
+                print(f"Function '{op}' not found in Operator.")
 
-    def get_final_message(
-        self,
-        query: str,
-        selected_operation,
-        args: Dict[str, Any],
-        operation_output: Any,
-    ):
-        input = {
-            "operations": str(self.operations),
-            "query": query,
-            "operation": str(selected_operation["operation"]),
-            "args": str(args),
-            "output": str(operation_output),
-        }
-        output_type = {
-            "final_response": "str",
-        }
-        if self.final_operation:
-            return self.final_operation(input, output_type, stop_tokens=None)
-        output = self.vocal_llm(
-            input,
-            output_type,
-        )
-        return output
+        # for op in ops:
+        #     tools_str += f"{op.name}: {op.description},\n"
+        # self.__inject(self.prompt, "input:tools", tools_str)
 
-    def run(self, query: str, pass_directly: bool = True):
-        # First query the engine with the query string for which operations and arugments to use
-        selected_operation = self.select_operations(query)
-        if pass_directly:
-            action = self.get_operation_to_run(selected_operation)["action"]
-            tool_output = action(query)
-            generated_arugments = {}
-        else:
-            # Then query for which arguments to use
-            generated_arugments = self.select_arguments(query, selected_operation)
-            # Then run the operations
-            action = self.get_operation_to_run(selected_operation)["action"]
-            tool_output = action(**generated_arugments)
-        # Then run the final operation or final llm
-        final_message = self.get_final_message(
-            query, selected_operation, generated_arugments, tool_output
-        )
-        return final_message
+    def run(self):
+        if len(self.operations) == 0:
+            raise Exception("Atleast 1 operation needs to be passed")
 
-    def add_final_operation(self, operation: Callable):
-        self.final_operation = operation
 
-    def get_operation_to_run(self, output):
-        for name, val in self.operations.items():
-            if output["operation"] == name:
-                return val
+
+
