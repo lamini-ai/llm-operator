@@ -5,6 +5,7 @@ from typing import Callable, Dict, List, Optional, Any
 from textwrap import dedent
 import re
 
+
 class Operator:
     def __init__(self) -> None:
         self.operations = {}
@@ -53,37 +54,40 @@ class Operator:
 
     def __generate_args(self):
         prompt_template = """\
-        <s>[INST] Given:
-        {input:query.field} ({input:query.context}): {input:query}
-        {input:operation.field} ({input:operation.context}): {input:operation}
-        Generate:
-        {output:age.field} after "{output:age.field}:"
-        {output:age.field}: [INST]"""
+        <s>[INST] For the given operation, find out what arguments to call the tool with.
+         Examples:
+        'User message': 'I am 15 years old and weigh 100 lbs.'
+        'Tool chosen': [
+        'setAge': age of the user in years.
+        ]
+        'Output': {'age': '15'}
+
+        Now for the following 'User message', share the 'Output'.
+        'User message': {query}
+        'Tool chosen': {operation}
+        [/INST]
+        """
         # argument_generator = Lamini(
         #     "operator", self.model_name, prompt_template
         # )
         prompt_template = dedent(prompt_template)
         return prompt_template
 
-    def __generate_response(self):
-        prompt_template = """\
-        <s>[INST]
-        You are a helpful assistant. You've just been asked to help with a task with the tools:
-        {input:operations}
-        The user's message: {input:query}
-        You decided to use the tool {input:operation} with the arguments {input:args}
-        Once you used the tool you got the output {input:output}
-        Respond to the user's message 
-
-        {input:query}
-
-        with a final message explaining the actions you took. Do not talk about using tools. Be helpful and inform the user of what has happened.
-        If the tool's output includes an error, tell the user that there was an error. 
-        Otherwise, acknowledge the user's message and tell them what you did: 
-        [INST]"""
-        # vocal_llm = Lamini("vocal", self.model_name, prompt_template)
-        prompt_template = dedent(prompt_template)
-        return prompt_template
+    # def __generate_response(self):
+    #     prompt_template = """\
+    #     <s>[INST]
+    #     You are a helpful assistant. You've just been asked to help with a task with the tools:
+    #     {operations}
+    #
+    #     for the  user's message:
+    #     {query}
+    #     You decided to use the tool {operation} with the arguments {args}
+    #     Once you used the tool you got the output- '{output}'
+    #     Respond to the user with the output of that tool exactly.
+    #     [INST]"""
+    #     # vocal_llm = Lamini("vocal", self.model_name, prompt_template)
+    #     prompt_template = dedent(prompt_template)
+    #     return prompt_template
 
     def add_operation(
             self,
@@ -121,8 +125,8 @@ class Operator:
         input = {"query": query, "operations": str(operation_descriptions)}
 
         prompt_template = self.__generate_operation_name()
-        print(prompt_template)
         prompt_str = prompt_template.format_map(input)
+        print("\n", prompt_str)
 
         # TODO: check this
         output_type = {
@@ -130,12 +134,12 @@ class Operator:
         }
 
         model_response = self.model(
-            input = self.prompt.input(input=prompt_str),
+            input=self.prompt.input(input=prompt_str),
             output_type=self.prompt.output,
-            stop_tokens = ["\n", ":"]
+            stop_tokens=["\n", ":"]
         )
         # TODO: remove when using jsonformer
-        print("resp:", model_response.output)
+        print("\n\nresp:", model_response.output)
         selected_operation = self.parse_output(model_response.output)
         print("selected_operation:", selected_operation)
         return selected_operation
@@ -147,42 +151,73 @@ class Operator:
     ):
         print("operation: ", operation)
         print("argument_query: ", query)
-        arguments = self.get_operation_to_run(operation)["arguments"]
+        arguments = self.get_operation_to_run(operation)
         input = {
             "query": query,
-            "operation": operation["operation"],
-            # "args": arguments,
+            "operation": operation,
         }
-        output_type = arguments
-        generated_arugments = self.argument_generator(
-            input, output_type, stop_tokens=["\n"]
+        # output_type = arguments
+        # generated_arugments = self.argument_generator(
+        #     input, output_type, stop_tokens=["\n"]
+        # )
+        prompt_template = self.__generate_args()
+        print(prompt_template)
+        prompt_str = prompt_template.format_map(input)
+        model_response = self.model(
+            input=self.prompt.input(input=prompt_str),
+            output_type=self.prompt.output,
+            stop_tokens=["\n", ":"]
         )
-        return generated_arugments
+        # TODO: remove when using jsonformer
+        print("\n\nresp:", model_response.output)
+        generated_arguments = self.parse_output(model_response.output)
+        print("generated_arguments:", generated_arguments)
+        return generated_arguments
 
-    def get_final_message(
-            self,
-            query: str,
-            selected_operation,
-            args: Dict[str, Any],
-            operation_output: Any,
-    ):
-        input = {
-            "operations": str(self.operations),
-            "query": query,
-            "operation": str(selected_operation["operation"]),
-            "args": str(args),
-            "output": str(operation_output),
-        }
-        output_type = {
-            "final_response": "str",
-        }
-        if self.final_operation:
-            return self.final_operation(input, output_type, stop_tokens=None)
-        output = self.vocal_llm(
-            input,
-            output_type,
-        )
-        return output
+    # def get_final_message(
+    #         self,
+    #         query: str,
+    #         selected_operation,
+    #         args: Dict[str, Any],
+    #         operation_output: Any,
+    # ):
+    #     operation_descriptions = [
+    #         f"'{name}': '{val['description']}'" for name, val in self.operations.items()
+    #     ]
+    #     input = {
+    #         "operations": str(operation_descriptions),
+    #         "query": query,
+    #         "operation": str(selected_operation),
+    #         "args": str(args),
+    #         "output": str(operation_output),
+    #     }
+    #     # output_type = {
+    #     #     "final_response": "str",
+    #     # }
+    #     # if self.final_operation:
+    #     #     return self.final_operation(input, output_type, stop_tokens=None)
+    #     # output = self.vocal_llm(
+    #     #     input,
+    #     #     output_type,
+    #     # )
+    #     output_type = {
+    #         "final_response": "str",
+    #     }
+    #     if self.final_operation:
+    #         return self.final_operation(input, output_type, stop_tokens=None)
+    #
+    #     prompt_template = self.__generate_response()
+    #
+    #     prompt_str = prompt_template.format_map(input)
+    #     print("\n", prompt_str)
+    #     model_response = self.model(
+    #         input=self.prompt.input(input=prompt_str),
+    #         output_type=self.prompt.output,
+    #         stop_tokens=["\n", ":"]
+    #     )
+    #     # TODO: remove when using jsonformer
+    #     print("\n\nresp:", model_response.output)
+    #     return model_response.output
 
     def run(self, query: str, pass_directly: bool = True):
         # First query the engine with the query string for which operations and arugments to use
@@ -190,7 +225,6 @@ class Operator:
         if pass_directly:
             action = self.get_operation_to_run(selected_operation)["action"]
             tool_output = action(query)
-            generated_arugments = {}
         else:
             # Then query for which arguments to use
             generated_arugments = self.select_arguments(query, selected_operation)
@@ -198,10 +232,10 @@ class Operator:
             action = self.get_operation_to_run(selected_operation)["action"]
             tool_output = action(**generated_arugments)
         # Then run the final operation or final llm
-        final_message = self.get_final_message(
-            query, selected_operation, generated_arugments, tool_output
-        )
-        return final_message
+        # final_message = self.get_final_message(
+        #     query, selected_operation, generated_arugments, tool_output
+        # )
+        return tool_output
 
     def add_final_operation(self, operation: Callable):
         self.final_operation = operation
