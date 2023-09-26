@@ -1,21 +1,104 @@
-from llama import Lamini
+# from llama import Lamini
+from llama import LLMEngine
+from llama.prompts.blank_prompt import BlankPrompt
 from typing import Callable, Dict, List, Optional, Any
-
+from textwrap import dedent
 
 class Operator:
-    def __init__(
-        self, operation_selector: Lamini, argument_generator: Lamini, vocal_llm: Lamini
-    ) -> None:
+    def __init__(self) -> None:
         self.operations = {}
-        self.argument_generator = argument_generator
-        self.operation_selector = operation_selector
-        self.vocal_llm = vocal_llm
+        self.prompt = BlankPrompt()
+        self.model_name = "meta-llama/Llama-2-7b-chat-hf"
+        # self.operation_selector: LLMEngine = self.__generate_operation_name
+        # self.argument_generator: LLMEngine = self.__generate_args()
+        # self.vocal_llm: LLMEngine = self.__generate_response()
         self.final_operation = None
 
+    @property
+    def __generate_operation_name(self):
+        prompt_template = """\
+        <s>[INST] <<SYS>>
+        You are a fitness bot who will infer from user's message what actions should be carried out.
+        <</SYS>>
+        Use the following format:
+        
+        'User message': the input message from the user.
+        'Tools available': List of tools to choose from.
+        'Output': the tool you will use. Write the exact tool name from the choices given.
+
+        Examples:
+        'User message': 'I feel a striking pain in my chest.'
+        'Tools available': [
+        'Book an appointment': to book an appointment,
+        'Cancel an appointment': to cancel an appointment, 
+        'Book an emergency appointment': to book an emergency appointment, 
+        'Financials and payment': patient payment related question, 
+        'Other': any other questions
+        ]
+        'Output': ['Book an emergency appointment appointment']
+
+        Now for the following 'User message', share the 'Output'.
+        'User message': {input:query}
+        'Tools available': {input:operations}
+        [/INST]
+        """
+
+        prompt_template = dedent(prompt_template)
+        print(prompt_template)
+        # operation_selector = Lamini(
+        #     "operator", self.model_name, prompt_template
+        # )
+        operation_selector = LLMEngine(
+            id="operator-fw",
+            prompt=self.prompt,
+            model_name=self.model_name,
+        )
+        return operation_selector
+
+    def __generate_args(self):
+        prompt_template = """<s>[INST] Given:
+        {input:query.field} ({input:query.context}): {input:query}
+        {input:operation.field} ({input:operation.context}): {input:operation}
+        Generate:
+        {output:age.field} after "{output:age.field}:"
+        {output:age.field}: [INST]"""
+        # argument_generator = Lamini(
+        #     "operator", self.model_name, prompt_template
+        # )
+        argument_generator = LLMEngine(
+            id="operator-fw",
+            prompt=self.prompt,
+            model_name=self.model_name,
+        )
+        return argument_generator
+
+    def __generate_response(self):
+        prompt_template = """<s>[INST]
+        You are a helpful assistant. You've just been asked to help with a task with the tools:
+        {input:operations}
+        The user's message: {input:query}
+        You decided to use the tool {input:operation} with the arguments {input:args}
+        Once you used the tool you got the output {input:output}
+        Respond to the user's message 
+
+        {input:query}
+
+        with a final message explaining the actions you took. Do not talk about using tools. Be helpful and inform the user of what has happened.
+        If the tool's output includes an error, tell the user that there was an error. 
+        Otherwise, acknowledge the user's message and tell them what you did: 
+        [INST]"""
+        # vocal_llm = Lamini("vocal", self.model_name, prompt_template)
+        vocal_llm = LLMEngine(
+            id="operator-fw",
+            prompt=self.prompt,
+            model_name=self.model_name,
+        )
+        return vocal_llm
+
     def add_operation(
-        self,
-        operation,
-        description: Optional[str] = None,
+            self,
+            operation,
+            description: Optional[str] = None,
     ):
         name = operation.__name__
         description = description or operation.__doc__
@@ -29,26 +112,30 @@ class Operator:
         }
 
     def select_operations(
-        self,
-        query: str,
+            self,
+            query: str,
     ):
         operation_descriptions = [
-            f"{name}: {val['description']}" for name, val in self.operations.items()
+            f"'{name}': '{val['description']}'" for name, val in self.operations.items()
         ]
         input = {"query": query, "operations": str(operation_descriptions)}
+
+        # TODO: check this
         output_type = {
             "operation": "str",
         }
         print("selecting between operations: ", operation_descriptions)
         selected_operation = self.operation_selector(
-            input, output_type, stop_tokens=["\n", ":"]
+            input = self.prompt.input(input=input),
+            output_type=self.prompt.output,
+            stop_tokens = ["\n", ":"]
         )
         return selected_operation
 
     def select_arguments(
-        self,
-        query: str,
-        operation: str,
+            self,
+            query: str,
+            operation: str,
     ):
         print("operation: ", operation)
         print("argument_query: ", query)
@@ -65,11 +152,11 @@ class Operator:
         return generated_arugments
 
     def get_final_message(
-        self,
-        query: str,
-        selected_operation,
-        args: Dict[str, Any],
-        operation_output: Any,
+            self,
+            query: str,
+            selected_operation,
+            args: Dict[str, Any],
+            operation_output: Any,
     ):
         input = {
             "operations": str(self.operations),
@@ -112,6 +199,7 @@ class Operator:
         self.final_operation = operation
 
     def get_operation_to_run(self, output):
+        print("get_operation_to_run: ", output)
         for name, val in self.operations.items():
             if output["operation"] == name:
                 return val

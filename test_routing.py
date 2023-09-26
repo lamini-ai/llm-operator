@@ -40,7 +40,7 @@ Begin!
 Message: {input:query}
 Tool: """
 operation_selector = Lamini(
-    "operator", "meta-llama/Llama-2-13b-chat-hf", prompt_template
+    "operator", "meta-llama/Llama-2-7b-chat-hf", prompt_template
 )
 
 argument_generator = Lamini(
@@ -61,7 +61,7 @@ with a final message explaining the actions you took. Do not talk about using to
 If the tool's output includes an error, tell the user that there was an error. 
 Otherwise, acknowledge the user's message and tell them what you did: 
 """
-vocal_llm = Lamini("vocal", "meta-llama/Llama-2-13b-chat-hf", prompt_template)
+vocal_llm = Lamini("vocal", "meta-llama/Llama-2-7b-chat-hf", prompt_template)
 onboardingOperator = Operator(operation_selector, argument_generator, vocal_llm)
 onboardingOperator.add_operation(setAge)
 onboardingOperator.add_operation(setHeight)
@@ -77,21 +77,6 @@ def callOnboardingAgent(message: str):
 reminder_message = None
 
 
-def setReminder(reminder: str):
-    """set a reminder message to do a workout"""
-    print("setReminder: ", reminder)
-    global reminder_message
-    reminder_message = reminder
-
-
-def sendCongrats(message: str):
-    """send a congratulatory message to the user"""
-    print("sendCongrats: ", message)
-
-
-def sendMotivationalMessage(message: str):
-    """send a motivational message to the user"""
-    print("sendMotivationalMessage: ", message)
 
 
 motivationAgent = Operator(operation_selector, argument_generator, vocal_llm)
