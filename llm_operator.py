@@ -3,18 +3,23 @@ from llama import LLMEngine
 from llama.prompts.blank_prompt import BlankPrompt
 from typing import Callable, Dict, List, Optional, Any
 from textwrap import dedent
+import re
 
 class Operator:
     def __init__(self) -> None:
         self.operations = {}
         self.prompt = BlankPrompt()
         self.model_name = "meta-llama/Llama-2-7b-chat-hf"
+        self.model = LLMEngine(
+            id="operator-fw",
+            prompt=self.prompt,
+            model_name=self.model_name,
+        )
         # self.operation_selector: LLMEngine = self.__generate_operation_name
         # self.argument_generator: LLMEngine = self.__generate_args()
         # self.vocal_llm: LLMEngine = self.__generate_response()
         self.final_operation = None
 
-    @property
     def __generate_operation_name(self):
         prompt_template = """\
         <s>[INST] <<SYS>>
@@ -24,7 +29,7 @@ class Operator:
         
         'User message': the input message from the user.
         'Tools available': List of tools to choose from.
-        'Output': the tool you will use. Write the exact tool name from the choices given.
+        'Output': the tool you will use. Write only the exact tool name from the choices given.
 
         Examples:
         'User message': 'I feel a striking pain in my chest.'
@@ -38,25 +43,17 @@ class Operator:
         'Output': ['Book an emergency appointment appointment']
 
         Now for the following 'User message', share the 'Output'.
-        'User message': {input:query}
-        'Tools available': {input:operations}
+        'User message': {query}
+        'Tools available': {operations}
         [/INST]
         """
 
         prompt_template = dedent(prompt_template)
-        print(prompt_template)
-        # operation_selector = Lamini(
-        #     "operator", self.model_name, prompt_template
-        # )
-        operation_selector = LLMEngine(
-            id="operator-fw",
-            prompt=self.prompt,
-            model_name=self.model_name,
-        )
-        return operation_selector
+        return prompt_template
 
     def __generate_args(self):
-        prompt_template = """<s>[INST] Given:
+        prompt_template = """\
+        <s>[INST] Given:
         {input:query.field} ({input:query.context}): {input:query}
         {input:operation.field} ({input:operation.context}): {input:operation}
         Generate:
@@ -65,15 +62,12 @@ class Operator:
         # argument_generator = Lamini(
         #     "operator", self.model_name, prompt_template
         # )
-        argument_generator = LLMEngine(
-            id="operator-fw",
-            prompt=self.prompt,
-            model_name=self.model_name,
-        )
-        return argument_generator
+        prompt_template = dedent(prompt_template)
+        return prompt_template
 
     def __generate_response(self):
-        prompt_template = """<s>[INST]
+        prompt_template = """\
+        <s>[INST]
         You are a helpful assistant. You've just been asked to help with a task with the tools:
         {input:operations}
         The user's message: {input:query}
@@ -88,12 +82,8 @@ class Operator:
         Otherwise, acknowledge the user's message and tell them what you did: 
         [INST]"""
         # vocal_llm = Lamini("vocal", self.model_name, prompt_template)
-        vocal_llm = LLMEngine(
-            id="operator-fw",
-            prompt=self.prompt,
-            model_name=self.model_name,
-        )
-        return vocal_llm
+        prompt_template = dedent(prompt_template)
+        return prompt_template
 
     def add_operation(
             self,
@@ -111,6 +101,15 @@ class Operator:
             "arguments": arguments,
         }
 
+    def parse_output(self, response):
+        output_match = re.search(r"'Output':\s*\"([^\"]+)\"", response)
+
+        if output_match:
+            output_value = output_match.group(1)
+            return output_value.strip()
+        else:
+            raise Exception("Pattern 'Output' not found in the input text.")
+
     def select_operations(
             self,
             query: str,
@@ -118,18 +117,27 @@ class Operator:
         operation_descriptions = [
             f"'{name}': '{val['description']}'" for name, val in self.operations.items()
         ]
+        print("selecting between operations: ", operation_descriptions)
         input = {"query": query, "operations": str(operation_descriptions)}
+
+        prompt_template = self.__generate_operation_name()
+        print(prompt_template)
+        prompt_str = prompt_template.format_map(input)
 
         # TODO: check this
         output_type = {
             "operation": "str",
         }
-        print("selecting between operations: ", operation_descriptions)
-        selected_operation = self.operation_selector(
-            input = self.prompt.input(input=input),
+
+        model_response = self.model(
+            input = self.prompt.input(input=prompt_str),
             output_type=self.prompt.output,
             stop_tokens = ["\n", ":"]
         )
+        # TODO: remove when using jsonformer
+        print("resp:", model_response.output)
+        selected_operation = self.parse_output(model_response.output)
+        print("selected_operation:", selected_operation)
         return selected_operation
 
     def select_arguments(
@@ -201,5 +209,5 @@ class Operator:
     def get_operation_to_run(self, output):
         print("get_operation_to_run: ", output)
         for name, val in self.operations.items():
-            if output["operation"] == name:
+            if output == name:
                 return val
