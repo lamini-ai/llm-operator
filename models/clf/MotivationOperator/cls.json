@@ -1,0 +1,6 @@
+{
+            "setReminder": "set a reminder to do a workout",
+            "sendMotivationalMessage": "send a motivational message to complete a workout",
+            "sendCongratsMessage": "send congrats to the user on completing a workout",
+            "sendFollowupMessage": "send a follow up message to the expressing concern on missing a workout."
+}

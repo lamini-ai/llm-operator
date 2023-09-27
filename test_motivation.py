@@ -1,20 +1,17 @@
 import os
-from llm_operator import Operator
-
+from llm_operator_2 import LLMOperator
+from datetime import date
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
-class MotivationOperator(Operator):
-    def __init__(self):
-        super().__init__()
-
+class MotivationOperator(LLMOperator):
     def setReminder(self, workout_name: str, workout_time: str):
         """
         set a reminder message to the user to do workout.
 
         Parameters:
         workout_name: name of the workout. if no name given, keep it static at 'Run workout'
-        workout_time: time to schedule the workout. Parse and convert in datetime format.
+        workout_time: time to schedule the workout. Figure out the given date and time and convert in ISO datetime format.
         """
         print("setReminder: ")
         return f"Reminder has been set. Workout: {workout_name}, Time: {workout_time}"
@@ -51,7 +48,7 @@ class MotivationOperator(Operator):
         self.add_operation(self.sendCongratulationsMessage)
         self.add_operation(self.sendMotivationalMessage)
         self.add_operation(self.sendFollowupMessage)
-        return self.run(mssg, False)
+        return self.run(mssg)
 
 
 if __name__ == '__main__':
