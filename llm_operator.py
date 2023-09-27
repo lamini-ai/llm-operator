@@ -4,7 +4,7 @@ from llama.prompts.blank_prompt import BlankPrompt
 from typing import Callable, Dict, List, Optional, Any
 from textwrap import dedent
 import re
-
+import ast
 
 class Operator:
     def __init__(self) -> None:
@@ -52,19 +52,35 @@ class Operator:
         prompt_template = dedent(prompt_template)
         return prompt_template
 
+    #     Example:
+    #     Given:
+    #     'User message': 'I am Nathan and I am 20 years old.'
+    #     'Tool chosen': [
+    #         'setAge': age
+    #     of
+    #     the
+    #     user in years.
+    #     ]
+    #     'Output types': [{{'name': 'age', 'type': 'int', description: 'age of the user'}}]
+    #
+    # Generate:
+    # 'Result': {{'age': '20'}}
     def __generate_args(self):
         prompt_template = """\
         <s>[INST] For the given operation, find out what arguments to call the tool with.
-         Examples:
-        'User message': 'I am 15 years old and weigh 100 lbs.'
-        'Tool chosen': [
-        'setAge': age of the user in years.
-        ]
-        'Output': {'age': '15'}
-
-        Now for the following 'User message', share the 'Output'.
-        'User message': {query}
-        'Tool chosen': {operation}
+         For the following input format:
+        'User message': the input message from the user.
+        'Tool chosen': tool chosen and its function.
+        'Output types': the tool requires some arguments to be passed to it. This includes a list of dictionaries containing 'name' which is the name of the argument to be passed to the tool, 'type' which is the type of the argument, 'description' which is the meaning of the argument.
+        
+        Output should be of format:
+        'Output': a dictionary containing the arguments and values as parsed from user message.
+        
+        Given:
+            'User message': {query}
+            'Tool chosen': {operation}
+            'Output types': {args}
+        generate the 'Output' only. Do not explain the logic.
         [/INST]
         """
         # argument_generator = Lamini(
@@ -89,6 +105,18 @@ class Operator:
     #     prompt_template = dedent(prompt_template)
     #     return prompt_template
 
+    def get_func_args(self, op):
+        args = []
+        for key, value in op.__annotations__.items():
+            pattern = fr"{key}:\s(.*?)\.?\n"
+            match = re.search(pattern, op.__doc__, re.DOTALL)
+            if match:
+                param_description = match.group(1).strip()
+            else:
+                param_description= None
+            args.append({"name": key, "type": str(value), "description": param_description})
+        return args
+
     def add_operation(
             self,
             operation,
@@ -96,31 +124,40 @@ class Operator:
     ):
         name = operation.__name__
         description = description or operation.__doc__
-        arguments = {
-            key: str(value) for key, value in operation.__annotations__.items()
-        }
+        arguments = self.get_func_args(operation)
         self.operations[name] = {
             "action": operation,
             "description": description,
-            "arguments": arguments,
+            "arguments": str(arguments),
         }
 
-    def parse_output(self, response):
-        output_match = re.search(r"'Output':\s*\"([^\"]+)\"", response)
+
+    def parse_op_output(self, response):
+        output_match = re.search(r"'Output':\s*'([^']+)'", response)
 
         if output_match:
             output_value = output_match.group(1)
-            return output_value.strip()
+            return output_value
         else:
-            raise Exception("Pattern 'Output' not found in the input text.")
+            print("\nPattern 'Output' not found in the input text.")
+
+    def parse_extractor_output(self, response):
+        output_match = re.search(r"'Output':\s*({.*?})", response)
+
+        if output_match:
+            output_value = output_match.group(1)
+            return output_value
+        else:
+            print("\nPattern 'Output' not found in the input text.")
 
     def select_operations(
             self,
             query: str,
     ):
-        operation_descriptions = [
-            f"'{name}': '{val['description']}'" for name, val in self.operations.items()
-        ]
+        operation_descriptions = []
+        for name, val in self.operations.items():
+            desc = val['description'].split("\n")[1].strip()
+            operation_descriptions.append(f"{name}: {desc}")
         print("selecting between operations: ", operation_descriptions)
         input = {"query": query, "operations": str(operation_descriptions)}
 
@@ -140,9 +177,39 @@ class Operator:
         )
         # TODO: remove when using jsonformer
         print("\n\nresp:", model_response.output)
-        selected_operation = self.parse_output(model_response.output)
+        selected_operation = self.parse_op_output(model_response.output)
         print("selected_operation:", selected_operation)
         return selected_operation
+
+    # def get_func_args(self, op):
+    #     # param_list = []
+    #     # pattern = r"(\w+)\s+\((\w+)\):\s*(.*)"
+    #     #
+    #     # print("ayu:", self.operations[op])
+    #     # print("ayu2:", self.operations[op].__annotations__)
+    #     # docstring = self.operations[op].description
+    #     # matches = re.findall(pattern, docstring)
+    #     # for match in matches:
+    #     #     param_name, param_type, param_description = match
+    #     #     param_list.append(
+    #     #         f"{{'field': {param_name}, 'type': {param_type}, 'description': {param_description} }}"
+    #     #     )
+    #     param_list = []
+    #     operation = self.get_operation_to_run(op)
+    #     # print("ayu:", operation)
+    #     function = getattr(self, op, None)
+    #     if function is not None and inspect.ismethod(function):
+    #         signature = inspect.signature(function)
+    #         parameters = signature.parameters
+    #         print(f"signature: {signature}, parameters: {parameters}")
+    #         for parameter_name, parameter in parameters.items():
+    #             parameter_type = parameter.annotation
+    #             parameter_desc = inspect.getdoc(parameter)
+    #             print(f"AyuParameter: {parameter_name}, Type: {parameter_type},  'description': {parameter_desc}")
+    #
+    #             #  'Output types': [{{'field': 'age', 'type': 'int', description: 'age of the user'}}]
+    #             param_list.append(f"{{'field': {parameter_name}, 'type': {parameter_type}, 'description': {parameter_desc} }}")
+    #     return param_list
 
     def select_arguments(
             self,
@@ -151,28 +218,30 @@ class Operator:
     ):
         print("operation: ", operation)
         print("argument_query: ", query)
-        arguments = self.get_operation_to_run(operation)
+
+        arguments = self.get_operation_to_run(operation)['arguments']
         input = {
             "query": query,
             "operation": operation,
+            "args": arguments
         }
         # output_type = arguments
         # generated_arugments = self.argument_generator(
         #     input, output_type, stop_tokens=["\n"]
         # )
         prompt_template = self.__generate_args()
-        print(prompt_template)
         prompt_str = prompt_template.format_map(input)
+        print("select_arguments:", prompt_str)
         model_response = self.model(
             input=self.prompt.input(input=prompt_str),
             output_type=self.prompt.output,
             stop_tokens=["\n", ":"]
         )
         # TODO: remove when using jsonformer
-        print("\n\nresp:", model_response.output)
-        generated_arguments = self.parse_output(model_response.output)
+        print("\n\nselect_arguments resp:", model_response.output)
+        generated_arguments = self.parse_extractor_output(model_response.output)
         print("generated_arguments:", generated_arguments)
-        return generated_arguments
+        return ast.literal_eval(generated_arguments)
 
     # def get_final_message(
     #         self,
@@ -241,7 +310,6 @@ class Operator:
         self.final_operation = operation
 
     def get_operation_to_run(self, output):
-        print("get_operation_to_run: ", output)
         for name, val in self.operations.items():
             if output == name:
                 return val
