@@ -2,72 +2,37 @@ import os
 from llm_operator import Operator
 from llama import Lamini
 
-person_age = None
+os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
-def setAge(age: int):
-    """set the age of a person"""
-    global person_age
-    person_age = age
+class OnboardingOperator(Operator):
+    def setAge(self, age: int):
+        """
+        set the age of a person
+
+        Parameters:
+        age: age of the person in years.
+        """
+        print("setAge: ")
+        return f"Age has been set. Age: {age}"
+
+    def setHeight(self, height: int):
+        """
+        set the height of a person
+
+        Parameters:
+        age: eight of the person in inches.
+        """
+        print("setHeight: ")
+        return f"Height has been set. Height: {height}"
+
+    def __call__(self, mssg):
+        self.add_operation(self.setAge)
+        self.add_operation(self.setHeight)
+        return self.run(mssg)
 
 
-person_height = None
-
-
-def setHeight(height: int):
-    """set the height of a person in inches"""
-    global person_height
-    person_height = height
-
-
-os.environ["LLAMA_ENVIRONMENT"] = "STAGING"
-prompt_template = """\
-Respond to the message using function calls. You have access to the following tools:
-
-{input:operations}
-
-Use the following format:
-
-Message: the input message you must use
-Tool: the tool you will use. Only write the name of the tool
-
-Begin!
-
-Message: {input:query}
-Tool: """
-operation_selector = Lamini(
-    "operator", "meta-llama/Llama-2-13b-chat-hf", prompt_template
-)
-prompt_template = """Given:
-{input:query.field} ({input:query.context}): {input:query}
-{input:operation.field} ({input:operation.context}): {input:operation}
-Generate:
-{output:age.field} after "{output:age.field}:"
-{output:age.field}: """
-argument_generator = Lamini(
-    "operator", "meta-llama/Llama-2-13b-chat-hf", prompt_template
-)
-prompt_template = """\
-You are a helpful assistant. You've just been asked to help with a task with the tools:
-{input:operations}
-The user's message: {input:query}
-You decided to use the tool {input:operation} with the arguments {input:args}
-Once you used the tool you got the output {input:output}
-Respond to the user's message 
-
-{input:query}
-
-with a final message explaining the actions you took. Do not talk about using tools. Be helpful and inform the user of what has happened.
-If the tool's output includes an error, tell the user that there was an error. 
-Otherwise, acknowledge the user's message and tell them what you did: 
-"""
-vocal_llm = Lamini("vocal", "meta-llama/Llama-2-13b-chat-hf", prompt_template)
-operator = Operator(operation_selector, argument_generator, vocal_llm)
-operator.add_operation(setAge)
-operator.add_operation(setHeight)
-output = operator.run("I am 19 years old")
-print("FINAL OUTCOMES: ")
-print("age:", person_age)
-print("height:", person_height)
-print("Final message: ")
-print(output["final_response"])
+if __name__ == '__main__':
+    agent = OnboardingOperator()
+    response = agent("I am 19 years old and 6ft tall.")
+    print(response)
