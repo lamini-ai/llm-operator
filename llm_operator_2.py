@@ -43,28 +43,30 @@ class LLMOperator:
         return prompt_template
 
     def get_func_args(self, op):
-        '''
+        """
         currently getting the docstring or function annotation doesn't give parameter wise description. so we try to find each function parameter and its specific description.
-        '''
+        """
         args = []
         for key, value in op.__annotations__.items():
-            pattern = fr"{key}:\s(.*?)\.?\n"
+            pattern = rf"{key}:\s(.*?)\.?\n"
             match = re.search(pattern, op.__doc__, re.DOTALL)
             if match:
                 param_description = match.group(1).strip()
             else:
                 param_description = None
-            args.append({"name": key, "type": str(value), "description": param_description})
+            args.append(
+                {"name": key, "type": str(value), "description": param_description}
+            )
         return args
 
     def add_operation(
-            self,
-            operation,
-            description: Optional[str] = None,
+        self,
+        operation,
+        description: Optional[str] = None,
     ):
-        '''
+        """
         Add tools to the agent. Each tool has tool name, description and arguments required.
-        '''
+        """
         name = operation.__name__
         description = description or operation.__doc__.split("\n")[1].strip()
         arguments = self.get_func_args(operation)
@@ -75,9 +77,9 @@ class LLMOperator:
         }
 
     def get_router(self):
-        '''
+        """
         Gets the routing agent to decide which tool to use.
-        '''
+        """
         class_name = {self.__class__.__name__}.pop()
         path = f"{os.getcwd()}/models/clf/{class_name}"
         classes_path = path + "/cls.json"
@@ -86,9 +88,9 @@ class LLMOperator:
         return clf
 
     def select_operations(self, query):
-        '''
+        """
         selects which tool to use
-        '''
+        """
         # TODO: predict multiple operations
         router = self.get_router()
         predicted_cls, prob = router.predict([query])
@@ -96,40 +98,36 @@ class LLMOperator:
         return predicted_cls[0]
 
     def select_arguments(
-            self,
-            query: str,
-            operation: str,
+        self,
+        query: str,
+        operation: str,
     ):
-        '''
+        """
         Predicts and parses the arguments required to call the tool.
-        '''
+        """
         print("argument_query: ", query)
         print("operation: ", operation)
 
-        arguments = self.__get_operation_to_run(operation)['arguments']
-        input = {
-            "query": query,
-            "operation": operation,
-            "args": arguments
-        }
+        arguments = self.__get_operation_to_run(operation)["arguments"]
+        input = {"query": query, "operation": operation, "args": arguments}
         prompt_template = self.__generate_args()
         prompt_str = prompt_template.format_map(input)
         print("select_arguments:", prompt_str)
         model_response = self.model(
             input=self.prompt.input(input=prompt_str),
             output_type=self.prompt.output,
-            stop_tokens=["\n", ":"]
+            stop_tokens=["\n", ":"],
         )
         # TODO: remove when using jsonformer
         print("\n\nselect_arguments resp:", model_response.output)
         generated_arguments = self.__parse_argument_output(model_response.output)
-        print("generated_arguments:", generated_arguments)
+        print("generated_arguments:", repr(generated_arguments))
         return ast.literal_eval(generated_arguments)
 
     def __parse_argument_output(self, response):
-        '''
+        """
         Parse the exact argument output.
-        '''
+        """
         output_match = re.search(r"'Output':\s*({.*?})", response)
 
         if output_match:
@@ -139,19 +137,19 @@ class LLMOperator:
             print("\nPattern 'Output' not found in the input text.")
 
     def __get_operation_to_run(self, output):
-        '''
+        """
         Get the tool callback from the name of the tool.
-        '''
+        """
         for name, val in self.operations.items():
             if output == name:
                 return val
 
     def run(self, query: str):
-        '''
+        """
         Gets the routing agent to decide which tool to use.
         Next, this agent finds out the value of the arguments required to call that tool.
         That tool is then called. Tool output is returned.
-        '''
+        """
         selected_operation = self.select_operations(query)
         generated_arugments = self.select_arguments(query, selected_operation)
         action = self.__get_operation_to_run(selected_operation)["action"]

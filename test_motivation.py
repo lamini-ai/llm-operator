@@ -1,6 +1,7 @@
 import os
 from llm_operator_2 import LLMOperator
 from datetime import date
+
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
@@ -51,11 +52,13 @@ class MotivationOperator(LLMOperator):
         return self.run(mssg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     agent = MotivationOperator()
     response = agent("Schedule a workout for 10 pm today.")
-    # response = agent("Send this message to the user 'Yay you did it. That's awesome.'")
-    # response = agent("Send this message to the user 'Hey Aaron, hope you're doing well! I noticed you missed our workout together at Crow Pass Hike in Alyeska, Alaska on Monday. It's important to stay consistent with your fitness routine, so I hope you can make it to our next workout together. Let me know if you need any help or motivation!'")
+    response = agent("Send this message to the user 'Yay you did it. That is awesome.'")
+    response = agent(
+        "Send this message to the user 'Hey Aaron, hope you are doing well! I noticed you missed our workout together at Crow Pass Hike in Alyeska, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together. Let me know if you need any help or motivation!'"
+    )
 
     print("\n\nFINAL OUTCOMES: ")
     print(response)
