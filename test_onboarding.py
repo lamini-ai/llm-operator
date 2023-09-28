@@ -1,11 +1,11 @@
 import os
-from llm_operator_2 import LLMOperator
+from llm_operator import Operator
 from llama import Lamini
 
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
-class OnboardingOperator(LLMOperator):
+class OnboardingOperator(Operator):
     def setAge(self, age: int):
         """
         set the age of a person

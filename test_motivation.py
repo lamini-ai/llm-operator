@@ -1,10 +1,10 @@
 import os
-from llm_operator_2 import LLMOperator
+from llm_operator import Operator
 from datetime import date
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
-class MotivationOperator(LLMOperator):
+class MotivationOperator(Operator):
     def setReminder(self, workout_name: str, workout_time: str):
         """
         set a reminder message to the user to do workout.
