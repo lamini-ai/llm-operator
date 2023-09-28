@@ -44,7 +44,7 @@ class LLMOperator:
 
     def get_func_args(self, op):
         '''
-        currently getting the docstring ot annotations doesn't give parameter wise description. so we try to find each function parameter and its specific description
+        currently getting the docstring or function annotation doesn't give parameter wise description. so we try to find each function parameter and its specific description.
         '''
         args = []
         for key, value in op.__annotations__.items():
@@ -81,16 +81,15 @@ class LLMOperator:
         class_name = {self.__class__.__name__}.pop()
         path = f"{os.getcwd()}/models/clf/{class_name}"
         classes_path = path + "/cls.json"
-        with open(classes_path, "r") as json_file:
-            classes = json.load(json_file)
         model_path = path + f"/{class_name}.lamini"
-        clf = RoutingOperator(classes, model_path)
+        clf = RoutingOperator(model_path, classes_path)
         return clf
 
     def select_operations(self, query):
         '''
         selects which tool to use
         '''
+        # TODO: predict multiple operations
         router = self.get_router()
         predicted_cls, prob = router.predict([query])
         print("predicted_cls:", predicted_cls)
@@ -123,11 +122,14 @@ class LLMOperator:
         )
         # TODO: remove when using jsonformer
         print("\n\nselect_arguments resp:", model_response.output)
-        generated_arguments = self.__parse_extractor_output(model_response.output)
+        generated_arguments = self.__parse_argument_output(model_response.output)
         print("generated_arguments:", generated_arguments)
         return ast.literal_eval(generated_arguments)
 
-    def __parse_extractor_output(self, response):
+    def __parse_argument_output(self, response):
+        '''
+        Parse the exact argument output.
+        '''
         output_match = re.search(r"'Output':\s*({.*?})", response)
 
         if output_match:
@@ -137,6 +139,9 @@ class LLMOperator:
             print("\nPattern 'Output' not found in the input text.")
 
     def __get_operation_to_run(self, output):
+        '''
+        Get the tool callback from the name of the tool.
+        '''
         for name, val in self.operations.items():
             if output == name:
                 return val
@@ -144,8 +149,8 @@ class LLMOperator:
     def run(self, query: str):
         '''
         Gets the routing agent to decide which tool to use.
-        This agent then find out the value of arguments required to call that tool.
-        That tool is then called. Tool ouput is returned.
+        Next, this agent finds out the value of the arguments required to call that tool.
+        That tool is then called. Tool output is returned.
         '''
         selected_operation = self.select_operations(query)
         generated_arugments = self.select_arguments(query, selected_operation)

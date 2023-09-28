@@ -6,6 +6,9 @@ from textwrap import dedent
 import re
 import ast
 
+'''
+DEPRECATED
+'''
 class Operator:
     def __init__(self) -> None:
         self.operations = {}
