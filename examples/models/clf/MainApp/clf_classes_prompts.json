@@ -1,0 +1,4 @@
+{
+            "callOnboardingOperator": "calls the Onboarding Operator in the project with the required arguments. It allows the current operator to onboard a new user to the system. ",
+            "callMotivationOperator": "calls the Motivation Operator in the project with the required arguments. It allows the current operator to motivate/followup/remind user of workout."
+}

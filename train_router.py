@@ -1,11 +1,13 @@
 import argparse
 
-from operator_classifier import RoutingOperator
+from routing_operator import RoutingOperator
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', help='Name of the Operator')
-    # This argument is optional and can be skipped. However, it is advised to train with some high quality data for optimal performance.
+
+    # This argument is optional and can be skipped. However, it is advised to train with some high quality data for
+    # optimal performance.
     parser.add_argument('--training_file', default=None,
                         help='csv file containing labeled data examples for each class.')
     parser.add_argument('--classes_file', help='json file which contains class names and their prompts.')
@@ -22,13 +24,13 @@ if __name__ == '__main__':
 
     clf = RoutingOperator(router_name, output_folder)
     clf.fit(classes_file, training_file)
-    resp = clf.predict(['I am 6 ft tall', 'I am 10 years old'])
-    print(resp)
+    # resp = clf.predict(['I am 6 ft tall', 'I am 10 years old'])
+    # print(resp)
 
 '''
-python3 examples/clf_train/train_onboarding_router.py 
---name OnboardingOperator 
---training_file examples/models/clf/OnboardingOperator/train_clf.csv 
---classes_file examples/models/clf/OnboardingOperator/clf_classes_prompts.json 
---output_folder examples/models/clf/OnboardingOperator/
+python3 train_router.py 
+--name MainApp 
+--training_file examples/models/clf/MainApp/train_clf.csv 
+--classes_file examples/models/clf/MainApp/clf_classes_prompts.json 
+--output_folder examples/models/clf/MainApp/
 '''
