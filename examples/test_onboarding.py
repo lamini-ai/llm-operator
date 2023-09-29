@@ -21,7 +21,7 @@ class OnboardingOperator(Operator):
         set the height of a person
 
         Parameters:
-        age: eight of the person in inches.
+        height: height of the person in inches.
         """
         print("setHeight: ")
         return f"Height has been set. Height: {height}"
@@ -33,6 +33,8 @@ class OnboardingOperator(Operator):
 
 
 if __name__ == '__main__':
-    agent = OnboardingOperator()
-    response = agent("I am 19 years old and 6ft tall.")
+    agent = OnboardingOperator("OnboardingOperator", "examples/models/clf/OnboardingOperator")
+    response = agent("who me? I am of age fifty nine, my friend.")
+    print(response)
+    response = agent("I am 6 feet tall.")
     print(response)

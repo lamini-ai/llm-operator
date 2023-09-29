@@ -11,7 +11,9 @@ import os
 
 
 class Operator:
-    def __init__(self) -> None:
+    def __init__(self, operator_name, router_path) -> None:
+        self.operator_name = operator_name
+        self.router_path = router_path
         self.operations = {}
         self.prompt = BlankPrompt()
         self.model_name = "meta-llama/Llama-2-7b-chat-hf"
@@ -78,11 +80,7 @@ class Operator:
         '''
         Gets the routing agent to decide which tool to use.
         '''
-        class_name = {self.__class__.__name__}.pop()
-        path = f"{os.getcwd()}/models/clf/{class_name}"
-        classes_path = path + "/cls.json"
-        model_path = path + f"/{class_name}.lamini"
-        clf = RoutingOperator(model_path, classes_path)
+        clf = RoutingOperator(self.operator_name, self.router_path)
         return clf
 
     def select_operations(self, query):
