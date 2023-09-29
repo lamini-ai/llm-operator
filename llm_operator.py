@@ -6,11 +6,13 @@ from llama import LLMEngine
 from llama.prompts.blank_prompt import BlankPrompt
 from routing_operator import RoutingOperator
 
-
 class Operator:
-    def __init__(self, operator_name, router_path) -> None:
+    def __init__(self, operator_name, router_classes_path, router_load_path) -> None:
         self.operator_name = operator_name
-        self.router_path = router_path
+        self.router_classes_path = router_classes_path
+        self.router_load_path = router_load_path
+        self.router = RoutingOperator(self.operator_name, self.router_classes_path, self.router_load_path)
+
         self.operations = {}
         self.prompt = BlankPrompt()
         self.model_name = "meta-llama/Llama-2-7b-chat-hf"
@@ -73,28 +75,32 @@ class Operator:
             "arguments": str(arguments),
         }
 
-    def get_router(self):
+    def get_router(self, operation_name):
         '''
         Gets the routing agent to decide which tool to use.
         '''
-        clf = RoutingOperator(self.operator_name, self.router_path)
+        clf = RoutingOperator(self.operator_name, self.router_classes_path, self.router_load_path)
         return clf
 
     def select_operations(self, query):
         '''
         selects which tool to use
         '''
-        # TODO: predict multiple operations
-        router = self.get_router()
-        predicted_cls, prob = router.predict([query])
-        print("predicted_cls:", predicted_cls)
-        return predicted_cls[0]
+        return self.router.predict([query])
+        # for op_name in self.operations.keys():
+        #     router = self.get_router(op_name)
+        #     predicted_cls, prob = router.predict([query])
+        #     if predicted_cls.startswith("positive") and prob[0] > self.ROUTING_THRESHOLD:
+        #         ops.append(op_name)
+        # print("predicted operations:", ops)
+        # return ops
 
     def select_arguments(
             self,
             query: str,
             operation: str,
     ):
+        # TODO: remove when using jsonformer
         '''
         Predicts and parses the arguments required to call the tool.
         '''
@@ -115,7 +121,6 @@ class Operator:
             output_type=self.prompt.output,
             stop_tokens=["\n", ":"]
         )
-        # TODO: remove when using jsonformer
         print("\n\nselect_arguments resp:", model_response.output)
         generated_arguments = self.__parse_argument_output(model_response.output)
         print("generated_arguments:", generated_arguments)
@@ -147,8 +152,11 @@ class Operator:
         Next, this agent finds out the value of the arguments required to call that tool.
         That tool is then called. Tool output is returned.
         '''
-        selected_operation = self.select_operations(query)
-        generated_arugments = self.select_arguments(query, selected_operation)
-        action = self.__get_operation_to_run(selected_operation)["action"]
-        tool_output = action(**generated_arugments)
-        return tool_output
+        selected_operations = self.select_operations(query)
+        t = []
+        for op in selected_operations:
+            generated_arguments = self.select_arguments(query, op)
+            action = self.__get_operation_to_run(op)["action"]
+            tool_output = action(**generated_arguments)
+            t.append(tool_output)
+        return t

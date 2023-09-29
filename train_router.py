@@ -22,10 +22,11 @@ if __name__ == '__main__':
     output_folder = args.output_folder
     verbose_mode = args.verbose
 
-    clf = RoutingOperator(router_name, output_folder)
-    clf.fit(classes_file, training_file)
-    # resp = clf.predict(['I am 6 ft tall', 'I am 10 years old'])
-    # print(resp)
+    rop = RoutingOperator(router_name, classes_file, output_folder)
+    # clf.fit()
+    queries = ['Wake me up at 10am', 'Where have you been? You missed your workout.', 'Schedule my "Run and burn" workout at 2pm tomorrow', 'Wow, look at you go! That was awesome.']
+    resp = rop.predict(queries)
+    print(resp)
 
 '''
 python3 train_router.py 
@@ -33,4 +34,10 @@ python3 train_router.py
 --training_file examples/models/clf/MainApp/train_clf.csv 
 --classes_file examples/models/clf/MainApp/clf_classes_prompts.json 
 --output_folder examples/models/clf/MainApp/
+
+python3 train_router.py 
+--name MotivationOperator 
+--training_file examples/models/clf/MotivationOperator/train_clf.csv 
+--classes_file examples/models/clf/MotivationOperator/clf_classes_prompts.json 
+--output_folder examples/models/clf/MotivationOperator/
 '''

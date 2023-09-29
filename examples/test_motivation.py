@@ -1,7 +1,7 @@
 import os
 from llm_operator import Operator
 from datetime import date
-os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
+# os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
 class MotivationOperator(Operator):
@@ -25,15 +25,6 @@ class MotivationOperator(Operator):
         """
         return "congrats:" + message
 
-    def sendMotivationalMessage(self, message: str):
-        """
-        send a motivational message to the user to motivate him do the workout.
-
-        Parameters:
-        message: a message meant to motivate the user to do the workout.
-        """
-        return "motivation:" + message
-
     def sendFollowupMessage(self, message: str):
         """
         send a follow-up message to the user checking on him for missing the workout.
@@ -46,14 +37,13 @@ class MotivationOperator(Operator):
     def __call__(self, mssg):
         self.add_operation(self.setReminder)
         self.add_operation(self.sendCongratulationsMessage)
-        self.add_operation(self.sendMotivationalMessage)
         self.add_operation(self.sendFollowupMessage)
         return self.run(mssg)
 
 
 if __name__ == '__main__':
-    agent = MotivationOperator("MotivationOperator", "examples/models/clf/MotivationOperator")
-    query = "Schedule a workout for 10 pm today."
+    agent = MotivationOperator("MotivationOperator", "examples/models/clf/MotivationOperator/clf_classes_prompts.json", "examples/models/clf/MotivationOperator")
+    query = "Schedule a workout for 6 pm today."
     # query = "Send this message to the user 'Yay you did it. That's awesome.'"
     # query = "Send this message to the user 'Hey Aaron, hope you're doing well! I noticed you missed our workout together at Crow Pass Hike in Alyeska, Alaska on Monday. It's important to stay consistent with your fitness routine, so I hope you can make it to our next workout together. Let me know if you need any help or motivation!'"
     response = agent(query)
