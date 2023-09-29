@@ -34,7 +34,9 @@ class OnboardingOperator(Operator):
 
 if __name__ == '__main__':
     agent = OnboardingOperator("OnboardingOperator", "examples/models/clf/OnboardingOperator")
-    response = agent("who me? I am of age fifty nine, my friend.")
+    query = "who me? I am of age fifty nine, my friend."
+    response = agent(query)
     print(response)
-    response = agent("I am 6 feet tall.")
+    query = "I am 6 feet tall."
+    response = agent(query)
     print(response)

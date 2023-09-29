@@ -10,7 +10,7 @@ class MotivationOperator(Operator):
         set a reminder message to the user to do workout.
 
         Parameters:
-        workout_name: name of the workout. if no name given, keep it static at 'Run workout'
+        workout_name: name of the workout. if no name given, keep it static at 'no-name'
         workout_time: time to schedule the workout. Figure out the given date and time and convert in ISO datetime format.
         """
         print("setReminder: ")
@@ -52,10 +52,10 @@ class MotivationOperator(Operator):
 
 
 if __name__ == '__main__':
-    agent = MotivationOperator()
-    response = agent("Schedule a workout for 10 pm today.")
-    # response = agent("Send this message to the user 'Yay you did it. That's awesome.'")
-    # response = agent("Send this message to the user 'Hey Aaron, hope you're doing well! I noticed you missed our workout together at Crow Pass Hike in Alyeska, Alaska on Monday. It's important to stay consistent with your fitness routine, so I hope you can make it to our next workout together. Let me know if you need any help or motivation!'")
-
-    print("\n\nFINAL OUTCOMES: ")
+    agent = MotivationOperator("MotivationOperator", "examples/models/clf/MotivationOperator")
+    query = "Schedule a workout for 10 pm today."
+    # query = "Send this message to the user 'Yay you did it. That's awesome.'"
+    # query = "Send this message to the user 'Hey Aaron, hope you're doing well! I noticed you missed our workout together at Crow Pass Hike in Alyeska, Alaska on Monday. It's important to stay consistent with your fitness routine, so I hope you can make it to our next workout together. Let me know if you need any help or motivation!'"
+    response = agent(query)
     print(response)
+
