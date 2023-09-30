@@ -1,11 +1,15 @@
 import os
 
 from llm_operator import Operator
-
+from llama import LlamaV2Runner
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
-
+import re
 
 class FoodDeliveryOperator(Operator):
+    def __init__(self):
+        super().__init__()
+        self.chat_model = LlamaV2Runner()
+
     def search(self, search_query: str):
         """
         User wants to get an answer about the food delivery app that is available in the FAQ pages of this app. This includes questions about their deliveries, payment, available grocery stores, shoppers, fees, and the app overall.
@@ -41,8 +45,10 @@ class FoodDeliveryOperator(Operator):
         """
 
         # Implement the actual business logic here. Eg: save this data in 'junk data' for user search analysis.
-        print("It is indicated that this is a general query.")
-        return f"Calling general query API with: message={message}"
+        print("It is indicated that this is a general query. So redirecting to a chat LLM.")
+        model_response = self.chat_model(message, system_prompt="answer in 3 sentences maximum.")
+        clean_response = re.sub(r'\.{2,}', '.', model_response)
+        return f"Calling general query LLM...\nuser query= {message} \n\noutput=\n{clean_response}"
 
     def __call__(self, mssg):
         return self.run(mssg)
