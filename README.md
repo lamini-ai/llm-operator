@@ -1,8 +1,10 @@
 ## LLM Operator framework 
-Create your own operator framework! Build an LLM framework to intelligently operate your application, from planning different operations to use (ie. functions, APIs, or tools to use) to invoking those operations.
+Create your own operator framework! 
+
+Build an LLM framework to intelligently select different functions to perform in your application: from planning different operations to use (ie. functions, APIs, or tools to use) to invoking those operations.
 
 #### Workflow: LLM Onboarding Operator
-Here's an example. You are building an application with an onboarding flow that gathers information about the user's demographic information, e.g. age and height, in a conversation with them.
+Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
 
 First create an `OnboardingOperator` by extending the `Operator` class:
 ```
@@ -69,10 +71,18 @@ The framework intelligently decides which operation to call and the required arg
 3. Now run your operator class with the `router` path from step 2.
 
 ### Examples
-Onboarding example
+Onboarding Operator example
 
-![onboarding.png](images%2Fonboarding.png)
+```
+User input: who me? I am of age fifty nine, my friend.
+Selected operation: ['setAge']
+Generated arguments: {'age': 59}
+```
 
-Motivation example
+Motivation Operator example
 
-![motivation.png](images%2Fmotivation.png)
+```
+User input: Schedule a workout for 10 pm today.
+Selected operation: ['setReminder']
+Generated arguments: {'workout_name': 'no-name', 'workout_time': '2023-03-10T22:00:00Z'}
+```
