@@ -1,5 +1,58 @@
-### Operator framework 
-Create your own operator framework to design the flow of your application.
+### LLM Operator framework 
+Create your own operator framework! Build an LLM framework to intelligently operate your application, from planning different operations to use (ie. functions, APIs, or tools to use) to invoking those operations.
+
+## Workflow: LLM Onboarding Operator
+Here's an example. You are building an application with an onboarding flow that gathers information about the user's demographic information, e.g. age and height, in a conversation with them.
+
+First create an `OnboardingOperator` by extending the `Operator` class:
+```
+class OnboardingOperator(Operator):
+```
+
+Create a `setAge` method inside the class. This is an example of an operation that the `OnboardingOperator` can invoke. For example, if a user sends a message like "I'm 36 years old", the `OnboardingOperator` can invoke the `setAge` method and extract the parameter `age` from the message.
+```
+def setAge(self, age: int):
+```
+
+To make this an understandable to an LLM like `OnboardingOperator`, a natural language description can be prompt-engineered to explain what it does, e.g. `set the age of a person`.
+```
+def setAge(self, age: int):
+    """
+    set the age of a person
+    """
+```
+
+Next, adding prompt-engineered descriptions to the parameters also provides contextual information to the LLM Operator:
+```
+def setAge(self, age: int):
+    """
+    set the age of a person
+    
+    Parameters:
+    age: age of the person in years.
+    """
+```
+
+Finally, once the operator routes to this function, you can do whatever you want in this function with the extracted parameter `age`. For example, you can save the age to a database, or you can return a customer message with the age, or you can call another LLM.
+```
+def setAge(self, age: int):
+    """
+    set the age of a person
+    
+    Parameters:
+    age: age of the person in years.
+    """
+    ### Do whatever you want here, e.g. save the age to database, do some analysis, etc.
+    ### As a hello world example, this is returning a string with the extract age parameter
+    return f"Hello! Your age has been set to {age}"
+```
+
+Now, add additional operations! In our example, you can see also setting the height of the user. 
+
+Finally, you can then train the Operator to route to the right operations.
+
+
+## Framework
 
 `Operator` - the main entity that encapsulates similar operations together.
 Eg: OnboardingOperator which has operations to understand and save user information like name, email, age, etc.
