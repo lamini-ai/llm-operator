@@ -38,6 +38,16 @@ class OnboardingOperator(Operator):
 
 
 if __name__ == '__main__':
+    # train and  inference
+    # #optional training file path
+    # training_file = None
+    # router_save_path = "examples/models/clf/OnboardingOperator/"
+    # operator = OnboardingOperator()
+    # operator.add_operations()
+    # operator.train(training_file, router_save_path)
+    # query = "who me? I am of age fifty nine, my friend."
+    # response = operator(query)
+
     # inference
     router_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
     operator = OnboardingOperator().load(router_save_path)

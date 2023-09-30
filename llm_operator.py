@@ -41,7 +41,7 @@ class Operator:
         'Output types': the tool requires some arguments to be passed to it. This includes a list of dictionaries containing 'name' which is the name of the argument to be passed to the tool, 'type' which is the type of the argument, 'description' which is the meaning of the argument.
 
         Output should be of format:
-        'Output': a dictionary containing the arguments and values as parsed from user message.
+        'Output': a json containing the argument names and values as parsed from user message.
 
         Given:
             'User message': {query}
