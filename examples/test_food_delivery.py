@@ -49,17 +49,16 @@ class FoodDeliveryOperator(Operator):
 
 
 if __name__ == '__main__':
-    # optional training file path
-    training_file = None
-    query = "I want 10l of milk."
-
     # train and  inference
+    # #optional training file path
+    # training_file = None
     # router_save_path = "examples/models/clf/FoodDeliveryOperator/"
     # foodOperator = FoodDeliveryOperator()
     # foodOperator.add_operation(foodOperator.search)
     # foodOperator.add_operation(foodOperator.order)
     # foodOperator.add_operation(foodOperator.noop)
     # foodOperator.train(training_file, router_save_path)
+    # query = "I want 10l of milk."
     # response = foodOperator(query)
 
     # inference
