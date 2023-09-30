@@ -44,7 +44,7 @@ class FoodDeliveryOperator(Operator):
         message: a message/query not related to the app.
         """
 
-        # Implement the actual business logic here. Eg: save this data in 'junk data' for user search analysis.
+        # Implement the actual business logic here. Eg: save this data in 'miscellaneous data' for user search analysis.
         print("It is indicated that this is a general query. So redirecting to a chat LLM.")
         model_response = self.chat_model(message, system_prompt="answer in 3 sentences maximum.")
         clean_response = re.sub(r'\.{2,}', '.', model_response)
