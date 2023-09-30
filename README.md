@@ -1,9 +1,9 @@
 ## LLM Operator framework 
-Create your own operator framework! 
+Create your own operator! 
 
-Build an LLM framework to intelligently select different functions to perform in your application: from planning different operations to use (ie. functions, APIs, or tools to use) to invoking those operations.
+Build an LLM operator to intelligently plan, select, and invoke different functions in your application, ie. functions, APIs, or tools to use.
 
-For example, a user might say `who me? I am of age fifty nine, my friend.`. You want to extract the age from this message. So, you would expect the LLM to call a function `setAge` that extracts the correct age `{'age': 59}`.
+For example, a user might say `who me? I am of age fifty nine, my friend.` Given this, you want to extract the age from this message and store it in a database. So, you would expect the LLM to call a function `setAge` that extracts the correct age `{'age': 59}` and then stores it in a database.
 
 #### Workflow: LLM Onboarding Operator
 Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
@@ -53,8 +53,10 @@ def setAge(self, age: int):
 
 Now, add additional operations! In our example, you can also see setting the height of the user. 
 
-Finally, you can then train the Operator to route to the right operations. 
+The key to getting your Operator to plan correctly is through train it to route to the right operations.
+
 Additionally, you can also train an operator to call other operators which in turn call the desired operations! Build a chain of operations and define a flow of your application.
+
 For example, see `test_main.py` which is an Operator that can call `OnboardingOperator` or `MotivationOperator` based on user input!
 ![fullApp.png](images%2FfullApp.png)
 
