@@ -5,13 +5,12 @@ import json
 
 
 class RoutingOperator:
-    def __init__(self, name, model_load_path):
-        self.model_save_path = f"{model_load_path}/{name}.lamini"
-
-        if not os.path.exists(self.model_save_path):
+    def __init__(self, model_load_path):
+        self.model_load_path = model_load_path
+        if not os.path.exists(self.model_load_path):
             self.classifier = LaminiClassifier()
         else:
-            self.classifier = LaminiClassifier.load(self.model_save_path)
+            self.classifier = LaminiClassifier.load(self.model_load_path)
 
     def __add_data(self, classes, training_data_path):
         '''
@@ -35,7 +34,10 @@ class RoutingOperator:
         if training_data_path:
             self.__add_data(classes_dict, training_data_path)
         self.classifier.prompt_train(classes_dict)
-        self.classifier.save(self.model_save_path)
+
+    def save(self, model_save_path):
+        print("Saving router to:", model_save_path)
+        self.classifier.save(model_save_path)
 
     def predict(self, data):
         '''

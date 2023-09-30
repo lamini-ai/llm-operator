@@ -5,12 +5,10 @@ from typing import Optional
 from llama import LLMEngine
 from llama.prompts.blank_prompt import BlankPrompt
 from routing_operator import RoutingOperator
-
+import os
 
 class Operator:
-    def __init__(self, router_path, operator_name = None) -> None:
-        self.operator_name = operator_name if operator_name else self.__class__.__name__
-        self.router_path = router_path
+    def __init__(self) -> None:
         self.operations = {}
         self.prompt = BlankPrompt()
         self.model_name = "meta-llama/Llama-2-7b-chat-hf"
@@ -19,6 +17,20 @@ class Operator:
             prompt=self.prompt,
             model_name=self.model_name,
         )
+        self.router=None
+        self.model_load_path = None
+
+    def load(self, router_path):
+        '''
+        Load the routing operator from the given path.
+        '''
+        if not os.path.exists(router_path):
+            raise Exception("Router path does not exist.")
+        if router_path and not router_path.endswith(".pkl"):
+            raise Exception("Model pickle file not detected.")
+        self.model_load_path = router_path
+        self.router = RoutingOperator(self.model_load_path)
+        return self
 
     def __generate_args(self):
         prompt_template = """\
@@ -53,7 +65,7 @@ class Operator:
                 param_description = match.group(1).strip()
             else:
                 param_description = None
-            args.append({"name": key, "type": str(value), "description": param_description})
+            args.append({"name": key, "type": "string", "description": param_description})
         return args
 
     def add_operation(
@@ -73,20 +85,12 @@ class Operator:
             "arguments": str(arguments),
         }
 
-    def get_router(self):
-        '''
-        Gets the routing agent to decide which tool to use.
-        '''
-        clf = RoutingOperator(self.operator_name, self.router_path)
-        return clf
-
     def select_operations(self, query):
         '''
         selects which tool to use
         '''
         # TODO: predict multiple operations
-        router = self.get_router()
-        predicted_cls, prob = router.predict([query])
+        predicted_cls, prob = self.router.predict([query])
         return predicted_cls[0]
 
     def select_arguments(
@@ -97,7 +101,6 @@ class Operator:
         '''
         Predicts and parses the arguments required to call the tool.
         '''
-
         arguments = self.__get_operation_to_run(operation)['arguments']
         input = {
             "query": query,
@@ -108,20 +111,18 @@ class Operator:
         prompt_str = prompt_template.format_map(input)
         model_response = self.model(
             input=self.prompt.input(input=prompt_str),
-            output_type=self.prompt.output,
-            stop_tokens=["\n", ":"]
+            output_type=self.prompt.output
         )
         # TODO: remove when using jsonformer
-        print("\n\nselect_arguments resp:", model_response.output)
         generated_arguments = self.__parse_argument_output(model_response.output)
-        print("generated_arguments:", generated_arguments)
         return ast.literal_eval(generated_arguments)
 
     def __parse_argument_output(self, response):
         '''
         Parse the exact argument output.
         '''
-        output_match = re.search(r"'Output':\s*({.*?})", response)
+        # output_match = re.search(r"'Output':\s*({.*?})", response)
+        output_match = re.search(r"'Output':\s*({[^}]+})", response)
 
         if output_match:
             output_value = output_match.group(1)
@@ -138,18 +139,28 @@ class Operator:
                 return val
 
     def __get_classes_dict(self):
+        '''
+        get tool name and description list
+        '''
         cls = {}
         for name, val in self.operations.items():
             cls[name] = val["description"]
         return cls
 
-    def train_router(self, training_data_path):
+    def train(self, training_file, router_save_path):
         '''
         Train the routing agent to decide which tool to use.
         '''
-        router = self.get_router()
+        if not os.path.exists(router_save_path):
+            os.makedirs(router_save_path)
+        if training_file and not os.path.exists(training_file):
+            print("Training file does not exist. Continuing without it.")
+
+        self.model_load_path = router_save_path + "router.pkl"
+        self.router = RoutingOperator(self.model_load_path)
         classes_dict = self.__get_classes_dict()
-        router.fit(classes_dict, training_data_path)
+        self.router.fit(classes_dict, training_file)
+        self.router.save(self.model_load_path)
 
     def run(self, query: str):
         '''
@@ -157,9 +168,12 @@ class Operator:
         Next, this agent finds out the value of the arguments required to call that tool.
         That tool is then called. Tool output is returned.
         '''
+        if not self.model_load_path:
+            raise Exception("Router not loaded.")
         selected_operation = self.select_operations(query)
         print(f"selected_operation: {selected_operation}")
         generated_arugments = self.select_arguments(query, selected_operation)
+        print(f"inferred_arugments: {generated_arugments}")
         action = self.__get_operation_to_run(selected_operation)["action"]
         tool_output = action(**generated_arugments)
         return tool_output
