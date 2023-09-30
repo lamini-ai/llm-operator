@@ -1,6 +1,7 @@
 import os
 from llm_operator import Operator
 from datetime import date
+
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
@@ -11,28 +12,20 @@ class MotivationOperator(Operator):
 
         Parameters:
         workout_name: name of the workout. if no name given, keep it static at 'no-name'
-        workout_time: time to schedule the workout. Figure out the given date and time and convert in ISO datetime format.
+        workout_time: date and time to schedule the workout.
         """
-        print("setReminder: ")
+        print("It is indicated to be a reminder message.")
         return f"Reminder has been set. Workout: {workout_name}, Time: {workout_time}"
 
-    def sendCongratulationsMessage(self, message: str):
+    def sendCongratsMessage(self, message: str):
         """
         send a congratulatory message to the user on completing the workout.
 
         Parameters:
         message: the congratulatory message.
         """
-        return "congrats:" + message
-
-    def sendMotivationalMessage(self, message: str):
-        """
-        send a motivational message to the user to motivate him do the workout.
-
-        Parameters:
-        message: a message meant to motivate the user to do the workout.
-        """
-        return "motivation:" + message
+        print("It is indicated to be a congratulatory message.")
+        return "Sending user message=" + message
 
     def sendFollowupMessage(self, message: str):
         """
@@ -41,21 +34,39 @@ class MotivationOperator(Operator):
         Parameters:
         message: a message meant to follow up with the user on missing a workout
         """
-        return "followup:" + message
+        print("It is indicated to be a follow up message.")
+        return "Sending user message=" + message
+
+    def add_operations(self):
+        self.add_operation(self.setReminder)
+        self.add_operation(self.sendCongratsMessage)
+        self.add_operation(self.sendFollowupMessage)
 
     def __call__(self, mssg):
-        self.add_operation(self.setReminder)
-        self.add_operation(self.sendCongratulationsMessage)
-        self.add_operation(self.sendMotivationalMessage)
-        self.add_operation(self.sendFollowupMessage)
         return self.run(mssg)
 
 
 if __name__ == '__main__':
-    agent = MotivationOperator("MotivationOperator", "examples/models/clf/MotivationOperator")
-    query = "Schedule a workout for 10 pm today."
-    # query = "Send this message to the user 'Yay you did it. That's awesome.'"
-    # query = "Send this message to the user 'Hey Aaron, hope you're doing well! I noticed you missed our workout together at Crow Pass Hike in Alyeska, Alaska on Monday. It's important to stay consistent with your fitness routine, so I hope you can make it to our next workout together. Let me know if you need any help or motivation!'"
-    response = agent(query)
-    print(response)
+    # train and  inference
+    # #optional training file path
+    # training_file = None
+    # router_save_path = "examples/models/clf/MotivationOperator/"
+    # operator = MotivationOperator()
+    # operator.add_operations()
+    # operator.train(training_file, router_save_path)
+    # query = "Yay you did it. This is awesome!"
+    # response = operator(query)
 
+    # inference
+    router_save_path = "examples/models/clf/MotivationOperator/router.pkl"
+    operator = MotivationOperator().load(router_save_path)
+    operator.add_operations()
+
+    query2 = "Yay you did it. This is awesome!"
+    print(f"\n\nQuery: {query2}")
+    response2 = operator(query2)
+    print(response2)
+    query3 = "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together."
+    print(f"\n\nQuery: {query3}")
+    response3 = operator(query3)
+    print(response3)

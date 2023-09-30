@@ -14,9 +14,12 @@ class MainApp(Operator):
         Parameters:
         message: user input message.
         """
-        print("callOnboardingOperator: ")
-        onboard_op = OnboardingOperator("OnboardingOperator", "examples/models/clf/OnboardingOperator")
-        return onboard_op(message)
+        print("\nIt is indicated that the user is new and needs to be onboarded.")
+        print("callOnboardingOperator...\n")
+        router_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
+        operator = OnboardingOperator().load(router_save_path)
+        operator.add_operations()
+        return operator(message)
 
     def callMotivationOperator(self, message: str):
         """
@@ -25,19 +28,44 @@ class MainApp(Operator):
         Parameters:
         message: user input message.
         """
-        print("callMotivationOperator: ")
-        motivate_op = MotivationOperator("MotivationOperator", "examples/models/clf/MotivationOperator")
-        return motivate_op(message)
+        print("\nIt is indicated that this meant to be a motivational message.")
+        print("callMotivationOperator...\n")
+        router_save_path = "examples/models/clf/MotivationOperator/router.pkl"
+        operator = MotivationOperator().load(router_save_path)
+        operator.add_operations()
+        return operator(message)
 
-    def __call__(self, mssg):
+    def add_operations(self):
         self.add_operation(self.callOnboardingOperator)
         self.add_operation(self.callMotivationOperator)
+
+    def __call__(self, mssg):
         return self.run(mssg)
 
 
 if __name__ == '__main__':
-    agent = MainApp("MainApp", "examples/models/clf/MainApp")
-    query = "Yay! you did so well today. Great workout!"
-    response = agent(query)
-    print(response)
+    # train and  inference
+    # #optional training file path
+    # training_file = None
+    # router_save_path = "examples/models/clf/MainApp/"
+    # operator = MainApp()
+    # operator.add_operations()
+    # operator.train(training_file, router_save_path)
+    # query = "You missed your workout yesterday. Just wanted to check in!"
+    # response = operator(query)
+
+    # inference
+    router_save_path = "examples/models/clf/MainApp/router.pkl"
+    operator = MainApp().load(router_save_path)
+    operator.add_operations()
+
+    query2 = "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together."
+    print(f"\n\nQuery: {query2}")
+    response2 = operator(query2)
+    print(response2)
+    query3 = "I am 6 feet tall."
+    print(f"\n\nQuery: {query3}")
+    response3 = operator(query3)
+    print(response3)
+
 
