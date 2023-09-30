@@ -75,10 +75,9 @@ The framework intelligently decides which operation to call and the required arg
 1. Create your operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. 
 2. Create Operations within the Operator to define what kind of tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it. You can allow chat through your operator by defining a chat operation. Here you can pass your own finetuned LLM model to chat with the user. See `noop` in `test_food_delivery.py` for an example.
 3. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
-4. For the very first time you would have to train your operator to give examples on what user operation should be invoked for what user query. You can train using `operator.train()`. You can guide the operator routing logic by providing a docstring inside each operation. Alternatively, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy.
-5. This decision router would be saved by the operator in your desired location.
-6. Going forward, you can just load this decision router using something like `operator = OnboardingOperator().load(<router_save_path>)`.
-7. You can then pass user input to it using `response = operator(<query>)`.
+4. For the very first time, you would have to train your operator to distinguish between defined operations. Train using `operator.train()`. You can guide the operator training logic by providing a docstring inside each operation. Alternatively, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy.
+5. Going forward, you can just load the operator using something like `operator = OnboardingOperator().load(<operator_save_path>)`.
+6. You can then pass user input to it using `response = operator(<query>)`.
 
 ### Examples
 Onboarding Operator example
