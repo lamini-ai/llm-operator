@@ -3,6 +3,8 @@ Create your own operator framework!
 
 Build an LLM framework to intelligently select different functions to perform in your application: from planning different operations to use (ie. functions, APIs, or tools to use) to invoking those operations.
 
+For example, a user might say `who me? I am of age fifty nine, my friend.`. You want to extract the age from this message. So, you would expect the LLM to call a function `setAge` that extracts the correct age `{'age': 59}`.
+
 #### Workflow: LLM Onboarding Operator
 Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
 
