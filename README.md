@@ -18,7 +18,7 @@ Create a `setAge` method inside the class. This is an example of an operation th
 def setAge(self, age: int):
 ```
 
-To make this an understandable to an LLM like `OnboardingOperator`, a natural language description can be prompt-engineered to explain what it does, e.g. `set the age of a person`.
+To make this understandable to an LLM like `OnboardingOperator`, a natural language description can be prompt-engineered to explain what it does, e.g. `set the age of a person`.
 ```
 def setAge(self, age: int):
     """
@@ -51,10 +51,12 @@ def setAge(self, age: int):
     return f"Hello! Your age has been set to {age}"
 ```
 
-Now, add additional operations! In our example, you can see also setting the height of the user. 
+Now, add additional operations! In our example, you can also see setting the height of the user. 
 
-Finally, you can then train the Operator to route to the right operations.
-
+Finally, you can then train the Operator to route to the right operations. 
+Additionally, you can also train an operator to call other operators which in turn call the desired operations! Build a chain of operations and define a flow of your application.
+For example, see `test_main.py` which is an Operator that can call `OnboardingOperator` or `MotivationOperator` based on user input!
+![fullApp.png](images%2FfullApp.png)
 
 ### Framework
 
@@ -68,23 +70,34 @@ The framework intelligently decides which operation to call and the required arg
 
 ### Steps:
 
-1. Create your operator class. Examples in `test_onboarding.py` and `test_motivation.py`. Follow the docstring format for each function to specify the description of the operation and each parameter within the tool.
-2. Train the `router` of your operator. The `router` decides what operations to call. Use script `train_onboarding_operator.py` as an example. Your router would be saved in the specified `output_folder` with the name of the operator.
-3. Now run your operator class with the `router` path from step 2.
+1. Create your operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. Follow the docstring format for each function to specify the description of the operation and each parameter within it.
+2. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
+3. For the very first time you would have to train your operator to give examples on what user operation should be invoked for what user query. You can train using `operator.train()`. You can guide the operator routing logic by providing a docstring inside each operation. Alternatively, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy.
+4. This decision router would be saved by the operator in your desired location.
+5. Going forward, you can just load this decision router using something like `operator = OnboardingOperator().load(<router_save_path>)`.
+6. You can then pass user input to it using `response = operator(<query>)`.
 
 ### Examples
 Onboarding Operator example
 
 ```
 User input: who me? I am of age fifty nine, my friend.
-Selected operation: ['setAge']
-Generated arguments: {'age': 59}
+
+Selected operation: setAge
+Inferred arugments: {'age': '59'}
+
+It is indicated to be the age of the user.
+Age has been set. Age= 59
 ```
 
-Motivation Operator example
+A Food Delivery Operator example
 
 ```
-User input: Schedule a workout for 10 pm today.
-Selected operation: ['setReminder']
-Generated arguments: {'workout_name': 'no-name', 'workout_time': '2023-03-10T22:00:00Z'}
+User input: I want 10l of milk.
+Selected operation: order
+Inferred arugments: {'item_name': 'milk', 'quantity': '10', 'unit': 'liters'}
+
+It is indicated that the user wants to place an order.
+Calling orders API with: item_name=milk, quantity=10, unit=liters
+
 ```
