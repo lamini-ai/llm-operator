@@ -1,7 +1,7 @@
-### LLM Operator framework 
+## LLM Operator framework 
 Create your own operator framework! Build an LLM framework to intelligently operate your application, from planning different operations to use (ie. functions, APIs, or tools to use) to invoking those operations.
 
-## Workflow: LLM Onboarding Operator
+#### Workflow: LLM Onboarding Operator
 Here's an example. You are building an application with an onboarding flow that gathers information about the user's demographic information, e.g. age and height, in a conversation with them.
 
 First create an `OnboardingOperator` by extending the `Operator` class:
@@ -52,7 +52,7 @@ Now, add additional operations! In our example, you can see also setting the hei
 Finally, you can then train the Operator to route to the right operations.
 
 
-## Framework
+### Framework
 
 `Operator` - the main entity that encapsulates similar operations together.
 Eg: OnboardingOperator which has operations to understand and save user information like name, email, age, etc.
