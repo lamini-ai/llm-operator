@@ -13,18 +13,23 @@ class OnboardingOperator(Operator):
         Parameters:
         age: age of the person in years.
         """
-        print("setAge: ")
-        return f"Age has been set. Age: {age}"
+        print("It is indicated to be the age of the user.")
+        return f"Age has been set. Age= {age}"
 
-    def setHeight(self, height: int):
+    def setHeight(self, height: int, units: str):
         """
         set the height of a person
 
         Parameters:
-        height: height of the person in inches.
+        height: height of the person in numbers.
+        units: units of the height like feet, inches, cm, etc.
         """
-        print("setHeight: ")
-        return f"Height has been set. Height: {height}"
+        print("It is indicated to be the height of the user.")
+        return f"Height has been set. Height={height}, units={units}"
+
+    def add_operations(self):
+        self.add_operation(self.setAge)
+        self.add_operation(self.setHeight)
 
     def __call__(self, mssg):
         self.add_operation(self.setAge)
@@ -33,10 +38,16 @@ class OnboardingOperator(Operator):
 
 
 if __name__ == '__main__':
-    agent = OnboardingOperator("OnboardingOperator", "examples/models/clf/OnboardingOperator")
-    query = "who me? I am of age fifty nine, my friend."
-    response = agent(query)
-    print(response)
-    query = "I am 6 feet tall."
-    response = agent(query)
-    print(response)
+    # inference
+    router_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
+    operator = OnboardingOperator().load(router_save_path)
+    operator.add_operations()
+
+    query2 = "who me? I am of age fifty nine, my friend."
+    print(f"\n\nQuery: {query2}")
+    response2 = operator(query2)
+    print(response2)
+    query3 = "I am 6 feet tall."
+    print(f"\n\nQuery: {query3}")
+    response3 = operator(query3)
+    print(response3)
