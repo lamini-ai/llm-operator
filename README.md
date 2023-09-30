@@ -72,12 +72,13 @@ The framework intelligently decides which operation to call and the required arg
 
 ### Steps:
 
-1. Create your operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. Follow the docstring format for each function to specify the description of the operation and each parameter within it.
-2. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
-3. For the very first time you would have to train your operator to give examples on what user operation should be invoked for what user query. You can train using `operator.train()`. You can guide the operator routing logic by providing a docstring inside each operation. Alternatively, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy.
-4. This decision router would be saved by the operator in your desired location.
-5. Going forward, you can just load this decision router using something like `operator = OnboardingOperator().load(<router_save_path>)`.
-6. You can then pass user input to it using `response = operator(<query>)`.
+1. Create your operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. 
+2. Create Operations within the Operator to define what kind of tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it. You can allow chat through your operator by defining a chat operation. Here you can pass your own finetuned LLM model to chat with the user. See `noop` in `test_food_delivery.py` for an example.
+3. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
+4. For the very first time you would have to train your operator to give examples on what user operation should be invoked for what user query. You can train using `operator.train()`. You can guide the operator routing logic by providing a docstring inside each operation. Alternatively, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy.
+5. This decision router would be saved by the operator in your desired location.
+6. Going forward, you can just load this decision router using something like `operator = OnboardingOperator().load(<router_save_path>)`.
+7. You can then pass user input to it using `response = operator(<query>)`.
 
 ### Examples
 Onboarding Operator example
@@ -86,7 +87,7 @@ Onboarding Operator example
 User input: who me? I am of age fifty nine, my friend.
 
 Selected operation: setAge
-Inferred arugments: {'age': '59'}
+Inferred arguments: {'age': '59'}
 
 It is indicated to be the age of the user.
 Age has been set. Age= 59
@@ -96,10 +97,25 @@ A Food Delivery Operator example
 
 ```
 User input: I want 10l of milk.
+
 Selected operation: order
-Inferred arugments: {'item_name': 'milk', 'quantity': '10', 'unit': 'liters'}
+Inferred arguments: {'item_name': 'milk', 'quantity': '10', 'unit': 'liters'}
 
 It is indicated that the user wants to place an order.
 Calling orders API with: item_name=milk, quantity=10, unit=liters
+
+```
+
+A Food Delivery chat example
+```
+User input: Are there any exercises I can do to lose weight?
+
+Selected operation: noop
+Inferred arguments: {'message': 'Are there any exercises I can do to lose weight?'}
+
+It is indicated that this is a general query. So redirecting to a chat LLM.
+Calling general query LLM...
+user query= Are there any exercises I can do to lose weight? 
+output= Yes, there are many exercises that can help you lose weight. Cardiovascular exercises such as running, cycling, and swimming are effective for burning calories and improving cardiovascular health. Resistance training, such as weightlifting or bodyweight exercises, can also help build muscle mass, which can increase your metabolism and help you lose weight.
 
 ```
