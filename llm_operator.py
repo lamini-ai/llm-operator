@@ -8,8 +8,8 @@ from routing_operator import RoutingOperator
 
 
 class Operator:
-    def __init__(self, operator_name, router_path) -> None:
-        self.operator_name = operator_name
+    def __init__(self, router_path, operator_name = None) -> None:
+        self.operator_name = operator_name if operator_name else self.__class__.__name__
         self.router_path = router_path
         self.operations = {}
         self.prompt = BlankPrompt()
@@ -87,7 +87,6 @@ class Operator:
         # TODO: predict multiple operations
         router = self.get_router()
         predicted_cls, prob = router.predict([query])
-        print("predicted_cls:", predicted_cls)
         return predicted_cls[0]
 
     def select_arguments(
@@ -98,8 +97,6 @@ class Operator:
         '''
         Predicts and parses the arguments required to call the tool.
         '''
-        print("argument_query: ", query)
-        print("operation: ", operation)
 
         arguments = self.__get_operation_to_run(operation)['arguments']
         input = {
@@ -109,7 +106,6 @@ class Operator:
         }
         prompt_template = self.__generate_args()
         prompt_str = prompt_template.format_map(input)
-        print("select_arguments:", prompt_str)
         model_response = self.model(
             input=self.prompt.input(input=prompt_str),
             output_type=self.prompt.output,
@@ -141,6 +137,20 @@ class Operator:
             if output == name:
                 return val
 
+    def __get_classes_dict(self):
+        cls = {}
+        for name, val in self.operations.items():
+            cls[name] = val["description"]
+        return cls
+
+    def train_router(self, training_data_path):
+        '''
+        Train the routing agent to decide which tool to use.
+        '''
+        router = self.get_router()
+        classes_dict = self.__get_classes_dict()
+        router.fit(classes_dict, training_data_path)
+
     def run(self, query: str):
         '''
         Gets the routing agent to decide which tool to use.
@@ -148,6 +158,7 @@ class Operator:
         That tool is then called. Tool output is returned.
         '''
         selected_operation = self.select_operations(query)
+        print(f"selected_operation: {selected_operation}")
         generated_arugments = self.select_arguments(query, selected_operation)
         action = self.__get_operation_to_run(selected_operation)["action"]
         tool_output = action(**generated_arugments)

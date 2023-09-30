@@ -1,6 +1,7 @@
 import os
+
 from llm_operator import Operator
-from datetime import date
+
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
@@ -24,7 +25,7 @@ class FoodDeliveryOperator(Operator):
         order_query: query related ot the order
         """
 
-        # Implement the actual business logic here. Eg: save this data in 'junk data' for user search analysis.
+        # Implement the actual business logic here. Eg: call the order API with this string.
         return "order:" + order_query
 
     def noop(self, message: str):
@@ -34,18 +35,22 @@ class FoodDeliveryOperator(Operator):
         Parameters:
         message: a random message not related to the app.
         """
+
+        # Implement the actual business logic here. Eg: save this data in 'junk data' for user search analysis.
         return "noop:" + message
 
-    def __call__(self, mssg):
+    def __call__(self, mssg, train = False, training_data_path=None):
         self.add_operation(self.search)
         self.add_operation(self.order)
         self.add_operation(self.noop)
+        if train:
+            agent.train_router(training_data_path)
         return self.run(mssg)
 
 
 if __name__ == '__main__':
-    agent = FoodDeliveryOperator("FoodDeliveryOperator", "examples/models/clf/FoodDeliveryOperator")
+    agent = FoodDeliveryOperator(router_path="examples/models/clf/FoodDeliveryOperator")
     query = "I want 5l of milk."
-    response = agent(query)
+    response = agent(query, False)
     print(response)
 

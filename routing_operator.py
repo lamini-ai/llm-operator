@@ -13,16 +13,6 @@ class RoutingOperator:
         else:
             self.classifier = LaminiClassifier.load(self.model_save_path)
 
-    def __get_classes(self, classes_path: str):
-        '''
-        Gets names and prompts of classes for routing.
-
-        classes_path: json file containing the name and prompt of each class
-        '''
-        with open(classes_path, "r") as json_file:
-            classes = json.load(json_file)
-        return classes
-
     def __add_data(self, classes, training_data_path):
         '''
         Gets names and prompts of classes for routing.
@@ -35,17 +25,16 @@ class RoutingOperator:
             d = df.loc[df['class_name'] == cl]['data'].to_list()
             self.classifier.add_data_to_class(cl, d)
 
-    def fit(self, classes_load_path, training_data_path = None):
+    def fit(self, classes_dict, training_data_path = None):
         '''
-        to train/prompt train the routing classifier.
+        to train/prompt-train the routing classifier.
 
-        classes_load_path: json file containing the name and prompt of each class
+        classes_dict: dict containing name of class and prompt for the class
         training_data_path: optional string path of training data csv.
         '''
-        classes = self.__get_classes(classes_load_path)
         if training_data_path:
-            self.__add_data(classes, training_data_path)
-        self.classifier.prompt_train(classes)
+            self.__add_data(classes_dict, training_data_path)
+        self.classifier.prompt_train(classes_dict)
         self.classifier.save(self.model_save_path)
 
     def predict(self, data):
