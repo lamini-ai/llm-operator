@@ -11,6 +11,12 @@ food_operator.train(<training_file>, <operator_save_path>)
 response = food_operator("I want 10l of milk.")
 ```
 
+You can run it directly like this:
+```bash
+python examples/test_food_delivery.py
+```
+Be sure to install the requirements first: `pip install -r requirements.txt`
+
 Output:
 ```
 Query: I want 10l of milk.
@@ -22,22 +28,72 @@ It is indicated that the user wants to place an order.
 Calling orders API with: item_name=milk, quantity=10, unit=liters
 ```
 
-LLM Operators can work hand in hand with your Chat LLM that's having a conversation with your users:
+LLM Operators can work hand in hand with your other LLMs, e.g. for Q&A, chat, etc.:
 ```
 self.chat = LlamaV2Runner() # inside Operator class, pass in a model_name to a finetuned LLM if desired
 ...
-message = user_input + api_response
+message = user_input + orders_api_response
 model_response = self.chat(message, system_prompt=f"Respond the user, confirming their order. If response from API is 200, then confirm that the item {item_name} has been ordered, else ask the user to restate their order.")
 ```
 
 See [`FoodDeliveryOperator`](examples/test_food_delivery.py) for a complete example.
 
-### Framework
+### Create Your Own Operator
+
+1. Create an operator class. Examples:
+    * [`test_onboarding.py`](examples/test_onboarding.py): onboards users, extracting demographic data
+    * [`test_motivation.py`](examples/test_motivation.py): motivates, reminds, and follows up with users
+    * [`test_food_delivery.py`](examples/test_food_delivery.py): orders or searches for users in a food delivery app
+    * [`test_main.py`](examples/test_main.py): **Advanced**, combines the onboarding and motivation operators together in a larger app
+
+2. Create operations (functions) that you want the Operator to invoke. Here is the `order` operation for ordering food: 
+```
+def order(self, item_name: str, quantity: str, unit: str):
+   """
+   User wants to order items, i.e. buy an item and place it into the cart. This includes any indication of wanting to checkout, or add to or modify the cart. It includes mentioning specific items, or general turn of phrase like 'I want to buy something'.
+   
+   Parameters:
+   item_name: name of the item that the user wants to order.
+   quantity: quantity of the item that the user wants to order.
+   unit: unit of the item that the user wants to order like kilograms, pounds, etc.
+   """
+```
+You can prompt-engineer the docstring! The main docstring and parameter descriptions are all read by the LLM Operator to follow your instructions. This will help your Operator learn the difference between operations and what parameters it needs to extract for each operation.
+
+3. In the Operator's main call function, register each of your operations, e.g.:
+```
+operator.add_operation(self.order)
+operator.add_operation(self.search)
+...
+```
+
+4. Finetune your Operator! For best results, give it some examples like in [`train_clf.csv`](examples/models/clf/FoodDeliveryOperator/train_clf.csv) for `FoodDeliveryOperator`. Finetuning is a form of training.
+```
+optional_training_filepath = "examples/models/clf/FoodDeliveryOperator/train_clf.csv" # extra training data
+operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl" # save to use later
+
+operator.train(optional_training_filepath, operator_save_path)
+```
+Fun fact: `clf` stands for classifier, because your operator is actually routing between its operations!
+
+5. Use your finetuned Operator:
+```
+finetuned_operator = FoodDeliveryOperator().load(operator_save_path)
+```
+
+6. Now, use it for as many user queries as you'd like!
+```
+user_query = "I want 10l of milk."
+response = operator(user_query)
+```
+
+### Operator Framework - super simple!
 
 `Operator` - main class that intelligently plans which operation (function) to invoke, e.g.:
 * [`OnboardingOperator`](examples/test_onboarding.py): calls operations to extract and save user information like name, email, age, etc.
 * [`FoodDeliveryOperator`](examples/test_food_delivery.py): calls operations to search an FAQ or place an order.
 * [`MotivationOperator`](examples/test_motivation.py): calls operations to send different types of messages to users to motivate, remind, or follow up with them.
+* [`MainApp`](examples/test_main.py): **Advanced** main operator that calls the `OnboardingOperator` and `MotivatorOperator` as operations in a larger app. So yes, you can also train an operator to call other operators, which in turn call the operations you want it to call -- it's operators all the way down!
 
 `Operation` - functions that your Operator can invoke. Multiple operations can reside within an Operator. For example: 
 * [`OnboardingOperator`](examples/test_onboarding.py): setAge, setEmailAddress, setHeight.
@@ -58,71 +114,20 @@ output=
 
 You can, of course, customize this to your own finetuned chat LLMs.
 
-#### How to create an Operator?
-Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
+### More Samples
 
-First create an `OnboardingOperator` by extending the `Operator` class:
-```
-class OnboardingOperator(Operator):
-```
+The following are just some sample snippets you can run right now.
 
-Create a `setAge` method inside the class. This is an example of an operation that the `OnboardingOperator` can invoke. For example, a user might say `who me? I am of age fifty nine, my friend.` Given this, you may want to initiate an operation to extract the age from this message. So, you would expect the Operator to call a function `setAge` that extracts the correct age `{'age': 59}`.
-
-To make this understandable to the `OnboardingOperator`, a natural language description can be prompt-engineered to explain what it does, e.g. `set the age of a person`. Define any other business logic inside this function like save this age to a database.
-
-Also, add prompt-engineered descriptions to the parameters of the function to provide contextual information to the Operator:
-```
-def setAge(self, age: int):
-    """
-    set the age of a person
-    
-    Parameters:
-    age: age of the person in years.
-    """
-    ### Do whatever you want here, e.g. save the age to database, do some analysis, etc.
-    ### As a hello world example, this is returning a string with the extracted age parameter
-    return f"Hello! Your age has been set to {age}"
-```
-
-You can add many more operations like `setHeight`, `setEmailAddress`, etc. to the `OnboardingOperator` class and train the operator to distinguish between them using the docstrings of the functions.
-Additionally, you can also train an operator to call other operators which in turn call the desired operations!
-For example, see `test_main.py` which has a `MainAppOperator` that can call `OnboardingOperator` or `MotivationOperator` based on user input!
-
-![fullApp.png](images%2FfullApp.png)
-
-Build a chain of operators and define a flow of your application.
-
-### Steps:
-
-1. Create an operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. 
-2. Create operations within the Operator to define the tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it.
-3. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
-4. Train your operator using the docstrings inside each operation to clarify their purpose. Additionally, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy. 
-
-    Train using `operator.train(<optional_training_file_path>, <operator_save_path>)`.
-5. After training, you can load your trained operator using something like `operator = OnboardingOperator().load(<operator_save_path>)`.
-6. Now, you can start using your operator for routing between operations and executing the right one using `response = operator(<query>)`.
-
-### How to recreate and run your operator
-1. Download requirements using `pip3 install -r requirements.txt`.
-2. You can create an operator class like in `examples/test_food_delivery.py`.
-3. You can change the operator(class) name, operations(functions) and their descriptions as per your use case. Define your own business logic within each operation.
-4. Check `main()` to see how to execute your operator framework.
-5. Run the file using `python3 examples/test_food_delivery.py`.
-
-### Examples
-
-#### Onboarding Operator example
+#### Onboarding Operator
 
 Code:
 ```
 operator_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
 operator = OnboardingOperator().load(operator_save_path)
 operator.add_operations()
-query2 = "who me? I am of age fifty nine, my friend."
-print(f"\n\User input: {query2}")
-response2 = operator(query2)
-print(response2)
+
+query = "who me? I am of age fifty nine, my friend."
+response = operator(query)
 ```
 
 Output:
@@ -136,17 +141,16 @@ It is indicated to be the age of the user.
 Age has been set. Age= 59
 ```
 
-#### A Food Delivery Operator example
+#### Food Delivery Operator
 
 Code:
 ```
 operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl"
 foodOperator = FoodDeliveryOperator().load(operator_save_path)
 foodOperator.add_operations()
-query1 = "I want 10l of milk."
-print(f"\n\nUser input: {query1}")
-response1 = foodOperator(query1)
-print(response1)
+
+query = "I want 10l of milk."
+response = foodOperator(query)
 ```
 Output:
 ```
@@ -160,17 +164,16 @@ Calling orders API with: item_name=milk, quantity=10, unit=liters
 
 ```
 
-#### A Food Delivery chat example
+#### Food Delivery with Chat
 
 Code:
 ```
 operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl"
 foodOperator = FoodDeliveryOperator().load(operator_save_path)
 foodOperator.add_operations()
-query3 = "Are there any exercises I can do to lose weight?"
-print(f"\n\nQuery2: {query3}")
-response3 = foodOperator(query3)
-print(response3)
+
+query = "Are there any exercises I can do to lose weight?"
+response = foodOperator(query)
 ```
 Output:
 ```
@@ -183,5 +186,4 @@ It is indicated that this is a general query. So redirecting to a chat LLM.
 Calling general query LLM...
 user query= Are there any exercises I can do to lose weight? 
 output= Yes, there are many exercises that can help you lose weight. Cardiovascular exercises such as running, cycling, and swimming are effective for burning calories and improving cardiovascular health. Resistance training, such as weightlifting or bodyweight exercises, can also help build muscle mass, which can increase your metabolism and help you lose weight.
-
 ```
