@@ -175,9 +175,9 @@ class Operator:
         if not self.model_load_path:
             raise Exception("Router not loaded.")
         selected_operation = self.select_operations(query)
-        print(f"selected_operation: {selected_operation}")
+        print(f"selected operation: {selected_operation}")
         generated_arugments = self.select_arguments(query, selected_operation)
-        print(f"inferred_arugments: {generated_arugments}")
+        print(f"inferred arguments: {generated_arugments}")
         action = self.__get_operation_to_run(selected_operation)["action"]
         tool_output = action(**generated_arugments)
         return tool_output
