@@ -1,6 +1,6 @@
 # LLM Operators - Build custom planning & tool-using LLMs with [Lamini](https://lamini.ai)
 
-Build your own operator! An operator is an LLM that can intelligently plan, select, and invoke different functions in your application. Here's [food delivery operator](examples/test_food_delivery.py):
+Build your own Operator! An Operator is an LLM that can intelligently plan, select, and invoke different functions in your application. Here's [food delivery operator](examples/test_food_delivery.py):
 
 ```
 food_operator = FoodDeliveryOperator()
