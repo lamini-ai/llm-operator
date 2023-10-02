@@ -18,7 +18,7 @@ python examples/test_food_delivery.py
 ```
 Be sure to install the requirements first: `pip install -r requirements.txt`
 
-Output:
+Here is the Food Delivery Operator's thought process and plan:
 ```
 Query: I want 10l of milk.
 
@@ -29,6 +29,7 @@ It is indicated that the user wants to place an order.
 Calling orders API with: item_name=milk, quantity=10, unit=liters
 ```
 
+### Chat x Operator
 LLM Operators can work hand in hand with your other LLMs, e.g. for Q&A, chat, etc.:
 ```
 self.chat = LlamaV2Runner() # inside Operator class, pass in a model_name to a finetuned LLM if desired
