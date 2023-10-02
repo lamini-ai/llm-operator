@@ -26,6 +26,8 @@ Eg: setAge, setEmailAddress, setHeight.
 
 You can also allow chat through your operator by defining a chat operation. Here you can pass your own fine-tuned LLM model to chat with the user. 
 Eg: `FoodDeliveryOperator` in `test_food_delivery.py` instantiates a chat LLM to chat with the user. Operation `noop` is invoked when a general query is detected. This operation calls the chat LLM to send an appropriate response to the user.
+![chat.png](images%2Fchat.png)
+
 
 #### How to create an Operator?
 Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
@@ -60,8 +62,6 @@ For example, see `test_main.py` which has a `MainAppOperator` that can call `Onb
 ![fullApp.png](images%2FfullApp.png)
 
 Build a chain of operators and define a flow of your application.
-
-![chat.png](images%2Fchat.png)
 
 ### Steps:
 
