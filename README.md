@@ -1,4 +1,5 @@
-## LLM Operator framework 
+# LLM Operator framework - Build custom planning and tool-using LLMs using [Lamini](https://lamini.ai)
+
 Build your own operator! An operator is an LLM that can intelligently plan, select, and invoke different functions in your application. Here's [food delivery operator](examples/test_food_delivery.py):
 
 ```
@@ -38,7 +39,7 @@ model_response = self.chat(message, system_prompt=f"Respond the user, confirming
 
 See [`FoodDeliveryOperator`](examples/test_food_delivery.py) for a complete example.
 
-### Create Your Own Operator
+## Create Your Own Operator
 
 1. Create an operator class. Examples:
     * [`test_onboarding.py`](examples/test_onboarding.py): onboards users, extracting demographic data
@@ -87,7 +88,7 @@ user_query = "I want 10l of milk."
 response = operator(user_query)
 ```
 
-### Operator Framework - super simple!
+## Operator Framework - super simple!
 
 `Operator` - main class that intelligently plans which operation (function) to invoke, e.g.:
 * [`OnboardingOperator`](examples/test_onboarding.py): calls operations to extract and save user information like name, email, age, etc.
