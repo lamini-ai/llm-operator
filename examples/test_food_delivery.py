@@ -90,7 +90,7 @@ if __name__ == '__main__':
     response2 = foodOperator(query2)
     print(response2)
     query3 = "Are there any exercises I can do to lose weight?"
-    print(f"\n\nQuery2: {query3}")
+    print(f"\n\nQuery3: {query3}")
     response3 = foodOperator(query3)
     print(response3)
 
