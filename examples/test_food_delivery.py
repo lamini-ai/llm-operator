@@ -37,7 +37,7 @@ class FoodDeliveryOperator(Operator):
         """
 
         # Implement the actual business logic here. Eg: call the order API with this string.
-        print("It is indicated that the user wants to place an order.")
+        print("It is indicated that the user wants to invoke cart/order operation.")
         return f"Calling orders API with: item_name={item_name}, quantity={quantity}, unit={unit}"
 
     def noop(self, message: str):
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl"
     foodOperator = FoodDeliveryOperator().load(operator_save_path)
     foodOperator.add_operations()
-    query1 = "I want 10l of milk."
+    query1 = "Add 10 gallons of milk to my cart."
     print(f"\n\nQuery: {query1}")
     response1 = foodOperator(query1)
     print(response1)
