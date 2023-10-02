@@ -31,6 +31,11 @@ It is indicated that the user wants to invoke cart/order operation.
 Calling orders API with: item_name=milk, quantity=2, unit=gallons
 ```
 
+You can also run your own queries like this:
+```bash
+python examples/test_food_delivery.py --query "Add 2 gallons of milk to my cart." "I want 1 liter of milk."
+```
+
 ### Chat x Operator
 LLM Operators can work hand in hand with your other LLMs, e.g. for Q&A, chat, etc.:
 ```
