@@ -1,18 +1,26 @@
 ## LLM Operator framework 
-Create your own operator! 
-
-Build an LLM operator to intelligently plan, select, and invoke different functions in your application.
+Build your own operator! An operator is an LLM that can intelligently plan, select, and invoke different functions in your application.
 
 ```
-foodOperator = FoodDeliveryOperator()
-foodOperator.add_operation(foodOperator.search)
-foodOperator.add_operation(foodOperator.order)
-foodOperator.train(<training_file>, <operator_save_path>)
-response = foodOperator("I want 10l of milk.")
+food_operator = FoodDeliveryOperator()
+
+food_operator.add_operation(food_operator.search)
+food_operator.add_operation(food_operator.order)
+
+food_operator.train(<training_file>, <operator_save_path>)
+response = food_operator("I want 10l of milk.")
 ```
 
 Output:
-![foodsmall.png](images%2Ffoodsmall.png)
+```
+Query: I want 10l of milk.
+
+selected operation: order
+inferred arguments: {'item_name': 'milk', 'quantity': '10', 'unit': 'liters'}
+
+It is indicated that the user wants to place an order.
+Calling orders API with: item_name=milk, quantity=10, unit=liters
+```
 
 ### Framework
 
