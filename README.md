@@ -89,10 +89,11 @@ Eg: `FoodDeliveryOperator` in `test_food_delivery.py` instantiates a chat LLM to
 6. Now, you can start using your operator for routing between operations and executing the right one using `response = operator(<query>)`.
 
 ### How to recreate and run your operator
-1. You can create an operator class like in `examples/test_food_delivery.py`.
-2. You can change the operator(class) name, operations(functions) and their descriptions as per your use case. Define your own business logic within each operation.
-3. Check `main()` to see how to execute your operator framework.
-4. Run the file using `python3 examples/test_food_delivery.py`.
+1. Download requirements using `pip3 install -r requirements.txt`.
+2. You can create an operator class like in `examples/test_food_delivery.py`.
+3. You can change the operator(class) name, operations(functions) and their descriptions as per your use case. Define your own business logic within each operation.
+4. Check `main()` to see how to execute your operator framework.
+5. Run the file using `python3 examples/test_food_delivery.py`.
 
 ### Examples
 Onboarding Operator example
