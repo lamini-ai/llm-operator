@@ -1,6 +1,6 @@
 # LLM Operators - Build custom planning & tool-using LLMs with [Lamini](https://lamini.ai)
 
-Build your own Operator! An Operator is an LLM that can intelligently plan, select, and invoke different functions in your application. Here's [food delivery operator](examples/test_food_delivery.py):
+Build your own Operator! An Operator is an LLM that can intelligently plan, select, and invoke different functions in your application. Here's a toy example of a [food delivery app](examples/test_food_delivery.py) which handles some operations like search or place an order:
 
 ```
 food_operator = FoodDeliveryOperator()
@@ -22,13 +22,13 @@ Notes:
 
 Here is the Food Delivery Operator's thought process and plan:
 ```
-Query: I want 10l of milk.
+Query: Add 2 gallons of milk to my cart.
 
 selected operation: order
-inferred arguments: {'item_name': 'milk', 'quantity': '10', 'unit': 'liters'}
+inferred arguments: {'item_name': 'milk', 'quantity': '2', 'unit': 'gallons'}
 
-It is indicated that the user wants to place an order.
-Calling orders API with: item_name=milk, quantity=10, unit=liters
+It is indicated that the user wants to invoke cart/order operation.
+Calling orders API with: item_name=milk, quantity=2, unit=gallons
 ```
 
 ### Chat x Operator
@@ -37,7 +37,7 @@ LLM Operators can work hand in hand with your other LLMs, e.g. for Q&A, chat, et
 self.chat = LlamaV2Runner() # inside Operator class, pass in a model_name to a finetuned LLM if desired
 ...
 message = user_input + orders_api_response
-model_response = self.chat(message, system_prompt=f"Respond the user, confirming their order. If response from API is 200, then confirm that the item {item_name} has been ordered, else ask the user to restate their order.")
+model_response = self.chat(message, system_prompt=f"Respond to the user, confirming the addition to cart. If response from API is 200, then confirm that the item {item_name} has been placed in the cart, else ask the user to restate their order.")
 ```
 
 See [`FoodDeliveryOperator`](examples/test_food_delivery.py) for a complete example.
@@ -46,7 +46,7 @@ See [`FoodDeliveryOperator`](examples/test_food_delivery.py) for a complete exam
 
 tl;dr:
 * Create an Operator class with operations (functions) for it to invoke. Lots of examples [here](examples/) :)
-* Finetune your Operator with prompt-engineered descriptions and/or data - now it can intelligently invoke operations!
+* Finetune your Operator with prompt-engineered descriptions and/or data - now it can intelligently invoke operations! All of the `examples` operators are pre-trained for you to try immediately. The trained operator is saved as `router.pkl` in the respective operator folder. :)
 * Hook your custom Operator LLM up to your own application with a simple [REST API](https://lamini-ai.github.io/API/completions/).
 
 1. Create an operator class. Examples:
@@ -76,7 +76,7 @@ operator.add_operation(self.search)
 ...
 ```
 
-4. Finetune your Operator! For best results, give it some examples like in [`train_clf.csv`](examples/models/clf/FoodDeliveryOperator/train_clf.csv) for `FoodDeliveryOperator`. Finetuning is a form of training.
+4. Finetune your Operator! For best results, give it some examples like in [`train_clf.csv`](examples/models/clf/FoodDeliveryOperator/train_clf.csv) for `FoodDeliveryOperator`. Finetuning is a form of training. We suggest giving atleast 50 examples per operation. The more, the better!
 ```
 optional_training_filepath = "examples/models/clf/FoodDeliveryOperator/train_clf.csv" # extra training data
 operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl" # save to use later
@@ -89,7 +89,7 @@ Fun fact: `clf` stands for classifier, because your operator is actually classif
 ```
 finetuned_operator = FoodDeliveryOperator().load(operator_save_path)
 
-user_query = "I want 10l of milk."
+user_query = "Add 2 gallons of milk to my cart."
 response = finetuned_operator(user_query)
 ```
 Hook your custom LLM Operator up to your production application with a simple [REST API](https://lamini-ai.github.io/API/completions/) call.
