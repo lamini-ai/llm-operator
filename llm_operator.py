@@ -160,7 +160,7 @@ class Operator:
         self.model_load_path = router_save_path + "router.pkl"
         if os.path.exists(self.model_load_path):
             print("Operator already trained. Loading from saved path.")
-            self.load(self.model_load_path)
+            self.load(router_save_path)
             return
         self.router = RoutingOperator(self.model_load_path)
         classes_dict = self.__get_classes_dict()
