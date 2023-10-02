@@ -65,25 +65,24 @@ Build a chain of operations and define a flow of your application.
 
 `Operator` - the main entity(class) that encapsulates similar operations together.
 Eg: `OnboardingOperator` which has operations to understand and save user information like name, email, age, etc.
-`FoodDeliveryOperator` which has operations like search seomthing about the app, ask a general query or place an order.
+`FoodDeliveryOperator` which has operations like search something about the app, ask a general query or place an order.
 The framework intelligently decides which operation to call and the required arguments from the user input.
 
 `Operation` - functions within your operator class which carry the business logic. Multiple operations reside within an operator.
 Eg: setAge, setEmailAddress, setHeight.
+
 You can also allow chat through your operator by defining a chat operation. Here you can pass your own fine-tuned LLM model to chat with the user. 
-Eg: `FoodDeliveryOperator` instantiates a chat LLM to chat with the user. Operation `noop` is invoked when a general query is detected. This operation calls the chat LLM to send an appropriate response to the user.
+Eg: `FoodDeliveryOperator` in `test_food_delivery.py` instantiates a chat LLM to chat with the user. Operation `noop` is invoked when a general query is detected. This operation calls the chat LLM to send an appropriate response to the user.
 
 
 ### Steps:
 
-1. Create your operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. 
-2. Create operations within the Operator to define what kind of tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it.
+1. Create an operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. 
+2. Create operations within the Operator to define the tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it.
 3. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
-4. Train your operator by providing docstrings inside each operation to clarify their purpose. Additionally, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy. 
+4. Train your operator using the docstrings inside each operation to clarify their purpose. Additionally, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy. 
 
     Train using `operator.train(<optional_training_file_path>, <operator_save_path>)`.
-
-    See `train_clf.csv` for an example of what a training file should look like.
 5. After training, you can load your trained operator using something like `operator = OnboardingOperator().load(<operator_save_path>)`.
 6. Now, you can start using your operator for routing between operations and executing the right one using `response = operator(<query>)`.
 
