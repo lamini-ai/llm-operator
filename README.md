@@ -32,11 +32,11 @@ First create an `OnboardingOperator` by extending the `Operator` class:
 class OnboardingOperator(Operator):
 ```
 
-Create a `setAge` method inside the class. This is an example of an operation that the `OnboardingOperator` can invoke. For example, a user might say `who me? I am of age fifty nine, my friend.` Given this, you may want to initiate an operation to extract the age from this message and say, store it in a database. So, you would expect the Operator to call a function `setAge` that extracts the correct age `{'age': 59}` and then stores it in a database.
+Create a `setAge` method inside the class. This is an example of an operation that the `OnboardingOperator` can invoke. For example, a user might say `who me? I am of age fifty nine, my friend.` Given this, you may want to initiate an operation to extract the age from this message. So, you would expect the Operator to call a function `setAge` that extracts the correct age `{'age': 59}`.
 
-To make this understandable to the `OnboardingOperator`, a natural language description can be prompt-engineered to explain what it does, e.g. `set the age of a person`. Define any other business logic inside this function.
+To make this understandable to the `OnboardingOperator`, a natural language description can be prompt-engineered to explain what it does, e.g. `set the age of a person`. Define any other business logic inside this function like save this age to a database.
 
-Also, add prompt-engineered descriptions to the parameters to provide contextual information to the LLM Operator:
+Also, add prompt-engineered descriptions to the parameters of the function to provide contextual information to the Operator:
 ```
 def setAge(self, age: int):
     """
