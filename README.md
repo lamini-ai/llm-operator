@@ -60,7 +60,7 @@ For example, see `test_main.py` which has a `MainAppOperator` that can call `Onb
 
 ![fullApp.png](images%2FfullApp.png)
 
-Build a chain of operations and define a flow of your application.
+Build a chain of operators and define a flow of your application.
 
 ### Framework
 
