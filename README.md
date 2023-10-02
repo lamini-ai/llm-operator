@@ -11,6 +11,9 @@ foodOperator.train(<training_file>, <operator_save_path>)
 response = foodOperator("I want 10l of milk.")
 ```
 
+Output:
+![foodsmall.png](images%2Ffoodsmall.png)
+
 ### Framework
 
 `Operator` - the main entity(class) that encapsulates similar operations together.
