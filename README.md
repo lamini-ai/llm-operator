@@ -22,13 +22,13 @@ Notes:
 
 Here is the Food Delivery Operator's thought process and plan:
 ```
-Query: Add 10 gallons of milk to my cart.
+Query: Add 2 gallons of milk to my cart.
 
 selected operation: order
-inferred arguments: {'item_name': 'milk', 'quantity': '10', 'unit': 'gallons'}
+inferred arguments: {'item_name': 'milk', 'quantity': '2', 'unit': 'gallons'}
 
 It is indicated that the user wants to invoke cart/order operation.
-Calling orders API with: item_name=milk, quantity=10, unit=gallons
+Calling orders API with: item_name=milk, quantity=2, unit=gallons
 ```
 
 ### Chat x Operator
@@ -89,7 +89,7 @@ Fun fact: `clf` stands for classifier, because your operator is actually classif
 ```
 finetuned_operator = FoodDeliveryOperator().load(operator_save_path)
 
-user_query = "Add 10 gallons of milk to my cart."
+user_query = "Add 2 gallons of milk to my cart."
 response = finetuned_operator(user_query)
 ```
 Hook your custom LLM Operator up to your production application with a simple [REST API](https://lamini-ai.github.io/API/completions/) call.

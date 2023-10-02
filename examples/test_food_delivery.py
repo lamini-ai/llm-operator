@@ -81,7 +81,7 @@ if __name__ == '__main__':
     operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl"
     foodOperator = FoodDeliveryOperator().load(operator_save_path)
     foodOperator.add_operations()
-    query1 = "Add 10 gallons of milk to my cart."
+    query1 = "Add 2 gallons of milk to my cart."
     print(f"\n\nQuery: {query1}")
     response1 = foodOperator(query1)
     print(response1)
