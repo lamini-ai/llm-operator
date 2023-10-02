@@ -42,6 +42,11 @@ See [`FoodDeliveryOperator`](examples/test_food_delivery.py) for a complete exam
 
 ## Create Your Own Operator
 
+tl;dr:
+* Create an Operator class with operations (functions) for it to invoke. Lots of examples [here](examples/) :)
+* Finetune your Operator with prompt-engineered descriptions and/or data - now it can intelligently invoke operations!
+* Hook your custom Operator LLM up to your own application with a simple [REST API](https://lamini-ai.github.io/API/completions/).
+
 1. Create an operator class. Examples:
     * [`test_onboarding.py`](examples/test_onboarding.py): onboards users, extracting demographic data
     * [`test_motivation.py`](examples/test_motivation.py): motivates, reminds, and follows up with users
