@@ -1,120 +1,123 @@
-## LLM Operator framework 
-Create your own operator! 
+# LLM Operators - Build custom planning & tool-using LLMs with [Lamini](https://lamini.ai)
 
-Build an LLM operator to intelligently plan, select, and invoke different functions in your application, ie. functions, APIs, or tools to use.
-
-For example, a user might say `who me? I am of age fifty nine, my friend.` Given this, you want to extract the age from this message and store it in a database. So, you would expect the LLM to call a function `setAge` that extracts the correct age `{'age': 59}` and then stores it in a database.
-
-#### Workflow: LLM Onboarding Operator
-Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
-
-First create an `OnboardingOperator` by extending the `Operator` class:
-```
-class OnboardingOperator(Operator):
-```
-
-Create a `setAge` method inside the class. This is an example of an operation that the `OnboardingOperator` can invoke. For example, if a user sends a message like "I'm 36 years old", the `OnboardingOperator` can invoke the `setAge` method and extract the parameter `age` from the message.
-```
-def setAge(self, age: int):
-```
-
-To make this understandable to an LLM like `OnboardingOperator`, a natural language description can be prompt-engineered to explain what it does, e.g. `set the age of a person`.
-```
-def setAge(self, age: int):
-    """
-    set the age of a person
-    """
-```
-
-Next, adding prompt-engineered descriptions to the parameters also provides contextual information to the LLM Operator:
-```
-def setAge(self, age: int):
-    """
-    set the age of a person
-    
-    Parameters:
-    age: age of the person in years.
-    """
-```
-
-Finally, once the operator routes to this function, you can do whatever you want in this function with the extracted parameter `age`. For example, you can save the age to a database, or you can return a customer message with the age, or you can call another LLM.
-```
-def setAge(self, age: int):
-    """
-    set the age of a person
-    
-    Parameters:
-    age: age of the person in years.
-    """
-    ### Do whatever you want here, e.g. save the age to database, do some analysis, etc.
-    ### As a hello world example, this is returning a string with the extract age parameter
-    return f"Hello! Your age has been set to {age}"
-```
-
-Now, add additional operations! In our example, you can also see setting the height of the user. 
-
-The key to getting your Operator to plan correctly is through train it to route to the right operations.
-
-Additionally, you can also train an operator to call other operators which in turn call the desired operations! Build a chain of operations and define a flow of your application.
-
-For example, see `test_main.py` which is an Operator that can call `OnboardingOperator` or `MotivationOperator` based on user input!
-![fullApp.png](images%2FfullApp.png)
-
-### Framework
-
-`Operator` - the main entity that encapsulates similar operations together.
-Eg: OnboardingOperator which has operations to understand and save user information like name, email, age, etc.
-
-`Operation` - multiple operations reside within an operator. The operator calls these operations based on user inputs to do the desired operation.
-Eg: setAge, setEmailAddress, setHeight.
-
-The framework intelligently decides which operation to call and the required arguments from the user input.
-
-### Steps:
-
-1. Create your operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. 
-2. Create Operations within the Operator to define what kind of tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it. You can allow chat through your operator by defining a chat operation. Here you can pass your own finetuned LLM model to chat with the user. See `noop` in `test_food_delivery.py` for an example.
-3. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
-4. For the very first time, you would have to train your operator to distinguish between defined operations. Train using `operator.train()`. You can guide the operator training logic by providing a docstring inside each operation. Alternatively, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy.
-5. Going forward, you can just load the operator using something like `operator = OnboardingOperator().load(<operator_save_path>)`.
-6. You can then pass user input to it using `response = operator(<query>)`.
-
-### Examples
-Onboarding Operator example
+Build your own Operator! An Operator is an LLM that can intelligently plan, select, and invoke different functions in your application. Here's [food delivery operator](examples/test_food_delivery.py):
 
 ```
-User input: who me? I am of age fifty nine, my friend.
+food_operator = FoodDeliveryOperator()
 
-Selected operation: setAge
-Inferred arguments: {'age': '59'}
+food_operator.add_operation(food_operator.search)
+food_operator.add_operation(food_operator.order)
 
-It is indicated to be the age of the user.
-Age has been set. Age= 59
+food_operator.train(<training_file>, <operator_save_path>)
+response = food_operator("I want 10l of milk.")
 ```
 
-A Food Delivery Operator example
-
+You can run it directly like this:
+```bash
+python examples/test_food_delivery.py
 ```
-User input: I want 10l of milk.
+Notes:
+* Install the requirements first: `pip install -r requirements.txt`.
+* Include this repo in your python path: `export PYTHONPATH=$PYTHONPATH:./`.
 
-Selected operation: order
-Inferred arguments: {'item_name': 'milk', 'quantity': '10', 'unit': 'liters'}
+Here is the Food Delivery Operator's thought process and plan:
+```
+Query: I want 10l of milk.
+
+selected operation: order
+inferred arguments: {'item_name': 'milk', 'quantity': '10', 'unit': 'liters'}
 
 It is indicated that the user wants to place an order.
 Calling orders API with: item_name=milk, quantity=10, unit=liters
-
 ```
 
-A Food Delivery chat example
+### Chat x Operator
+LLM Operators can work hand in hand with your other LLMs, e.g. for Q&A, chat, etc.:
 ```
-User input: Are there any exercises I can do to lose weight?
-
-Selected operation: noop
-Inferred arguments: {'message': 'Are there any exercises I can do to lose weight?'}
-
-It is indicated that this is a general query. So redirecting to a chat LLM.
-Calling general query LLM...
-user query= Are there any exercises I can do to lose weight? 
-output= Yes, there are many exercises that can help you lose weight. Cardiovascular exercises such as running, cycling, and swimming are effective for burning calories and improving cardiovascular health. Resistance training, such as weightlifting or bodyweight exercises, can also help build muscle mass, which can increase your metabolism and help you lose weight.
-
+self.chat = LlamaV2Runner() # inside Operator class, pass in a model_name to a finetuned LLM if desired
+...
+message = user_input + orders_api_response
+model_response = self.chat(message, system_prompt=f"Respond the user, confirming their order. If response from API is 200, then confirm that the item {item_name} has been ordered, else ask the user to restate their order.")
 ```
+
+See [`FoodDeliveryOperator`](examples/test_food_delivery.py) for a complete example.
+
+## Create Your Own Operator
+
+tl;dr:
+* Create an Operator class with operations (functions) for it to invoke. Lots of examples [here](examples/) :)
+* Finetune your Operator with prompt-engineered descriptions and/or data - now it can intelligently invoke operations!
+* Hook your custom Operator LLM up to your own application with a simple [REST API](https://lamini-ai.github.io/API/completions/).
+
+1. Create an operator class. Examples:
+    * [`test_onboarding.py`](examples/test_onboarding.py): onboards users, extracting demographic data
+    * [`test_motivation.py`](examples/test_motivation.py): motivates, reminds, and follows up with users
+    * [`test_food_delivery.py`](examples/test_food_delivery.py): orders or searches for users in a food delivery app
+    * [`test_main.py`](examples/test_main.py): **Advanced**, combines the onboarding and motivation operators together in a larger app
+
+2. Create operations (functions) that you want the Operator to invoke. Here is the `order` operation for ordering food: 
+```
+def order(self, item_name: str, quantity: str, unit: str):
+   """
+   User wants to order items, i.e. buy an item and place it into the cart. This includes any indication of wanting to checkout, or add to or modify the cart. It includes mentioning specific items, or general turn of phrase like 'I want to buy something'.
+   
+   Parameters:
+   item_name: name of the item that the user wants to order.
+   quantity: quantity of the item that the user wants to order.
+   unit: unit of the item that the user wants to order like kilograms, pounds, etc.
+   """
+```
+You can prompt-engineer the docstring! The main docstring and parameter descriptions are all read by the LLM Operator to follow your instructions. This will help your Operator learn the difference between operations and what parameters it needs to extract for each operation.
+
+3. In the Operator's main call function, register each of your operations, e.g.:
+```
+operator.add_operation(self.order)
+operator.add_operation(self.search)
+...
+```
+
+4. Finetune your Operator! For best results, give it some examples like in [`train_clf.csv`](examples/models/clf/FoodDeliveryOperator/train_clf.csv) for `FoodDeliveryOperator`. Finetuning is a form of training.
+```
+optional_training_filepath = "examples/models/clf/FoodDeliveryOperator/train_clf.csv" # extra training data
+operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl" # save to use later
+
+operator.train(optional_training_filepath, operator_save_path)
+```
+Fun fact: `clf` stands for classifier, because your operator is actually classifying a user request into different operations!
+
+5. Use your finetuned Operator — on as many user queries as you'd like!
+```
+finetuned_operator = FoodDeliveryOperator().load(operator_save_path)
+
+user_query = "I want 10l of milk."
+response = finetuned_operator(user_query)
+```
+Hook your custom LLM Operator up to your production application with a simple [REST API](https://lamini-ai.github.io/API/completions/) call.
+
+## Operator Framework - super simple!
+
+`Operator` - main class that intelligently plans which operation (function) to invoke, e.g.:
+* [`OnboardingOperator`](examples/test_onboarding.py): calls operations to extract and save user information like name, email, age, etc.
+* [`FoodDeliveryOperator`](examples/test_food_delivery.py): calls operations to search an FAQ or place an order.
+* [`MotivationOperator`](examples/test_motivation.py): calls operations to send different types of messages to users to motivate, remind, or follow up with them.
+* [`MainApp`](examples/test_main.py): **Advanced** main operator that calls the `OnboardingOperator` and `MotivatorOperator` as operations in a larger app. So yes, you can also train an operator to call other operators, which in turn call the operations you want it to call -- it's operators all the way down!
+
+`Operation` - functions that your Operator can invoke. Multiple operations can reside within an Operator. For example: 
+* [`OnboardingOperator`](examples/test_onboarding.py): setAge, setEmailAddress, setHeight.
+* [`FoodDeliveryOperator`](examples/test_food_delivery.py): search, order, noop.
+* [`MotivationOperator`](examples/test_motivation.py): setReminder, sendCongratsMessage, sendFollowupMessage.
+These operations also include parameters that you want the Operator to extract in order to properly invoke these operations. For example, in `setAge`, the desired parameter would be `age` that can be extracted and then, for example, saved in a database about the user.
+
+Connect your Chat LLM to your Operator. An example of this in the [`FoodDeliveryOperator`](examples/test_food_delivery.py) when no specific operation is selected, and the user is just chatting generally:
+```
+Query: Are there any exercises I can do to lose weight?
+selected operation: noop
+
+It is indicated that this is a general query. So redirecting to a general chat LLM.
+Calling general chat LLM...
+output=
+   Yes, there are many exercises that can help you lose weight. Cardiovascular exercises such as running, cycling, and swimming are effective for burning calories and improving cardiovascular health. Resistance training, such as weightlifting or bodyweight exercises, can also help build muscle mass, which can increase your metabolism and help you lose weight.
+```
+
+You can, of course, customize this to your own finetuned chat LLMs.
+

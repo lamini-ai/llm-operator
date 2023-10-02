@@ -50,16 +50,16 @@ if __name__ == '__main__':
     # train and  inference
     # #optional training file path
     # training_file = None
-    # router_save_path = "examples/models/clf/MotivationOperator/"
+    # operator_save_path = "examples/models/clf/MotivationOperator/"
     # operator = MotivationOperator()
     # operator.add_operations()
-    # operator.train(training_file, router_save_path)
+    # operator.train(training_file, operator_save_path)
     # query = "Yay you did it. This is awesome!"
     # response = operator(query)
 
     # inference
-    router_save_path = "examples/models/clf/MotivationOperator/router.pkl"
-    operator = MotivationOperator().load(router_save_path)
+    operator_save_path = "examples/models/clf/MotivationOperator/router.pkl"
+    operator = MotivationOperator().load(operator_save_path)
     operator.add_operations()
 
     query2 = "Yay you did it. This is awesome!"

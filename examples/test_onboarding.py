@@ -36,21 +36,20 @@ class OnboardingOperator(Operator):
         self.add_operation(self.setHeight)
         return self.run(mssg)
 
-
-if __name__ == '__main__':
+def main():
     # train and  inference
     # #optional training file path
     # training_file = None
-    # router_save_path = "examples/models/clf/OnboardingOperator/"
+    # operator_save_path = "examples/models/clf/OnboardingOperator/"
     # operator = OnboardingOperator()
     # operator.add_operations()
-    # operator.train(training_file, router_save_path)
+    # operator.train(training_file, operator_save_path)
     # query = "who me? I am of age fifty nine, my friend."
     # response = operator(query)
 
     # inference
-    router_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
-    operator = OnboardingOperator().load(router_save_path)
+    operator_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
+    operator = OnboardingOperator().load(operator_save_path)
     operator.add_operations()
 
     query2 = "who me? I am of age fifty nine, my friend."
@@ -61,3 +60,7 @@ if __name__ == '__main__':
     print(f"\n\nQuery: {query3}")
     response3 = operator(query3)
     print(response3)
+
+
+if __name__ == '__main__':
+    main()
