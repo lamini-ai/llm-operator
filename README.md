@@ -1,5 +1,5 @@
 ## LLM Operator framework 
-Build your own operator! An operator is an LLM that can intelligently plan, select, and invoke different functions in your application.
+Build your own operator! An operator is an LLM that can intelligently plan, select, and invoke different functions in your application. Here's [food delivery operator](examples/test_food_delivery.py):
 
 ```
 food_operator = FoodDeliveryOperator()
@@ -22,21 +22,41 @@ It is indicated that the user wants to place an order.
 Calling orders API with: item_name=milk, quantity=10, unit=liters
 ```
 
+LLM Operators can work hand in hand with your Chat LLM that's having a conversation with your users:
+```
+self.chat = LlamaV2Runner() # inside Operator class, pass in a model_name to a finetuned LLM if desired
+...
+message = user_input + api_response
+model_response = self.chat(message, system_prompt=f"Respond the user, confirming their order. If response from API is 200, then confirm that the item {item_name} has been ordered, else ask the user to restate their order.")
+```
+
+See [`FoodDeliveryOperator`](examples/test_food_delivery.py) for a complete example.
+
 ### Framework
 
-`Operator` - the main entity(class) that encapsulates similar operations together.
-Eg: `OnboardingOperator` which has operations to understand and save user information like name, email, age, etc.
-`FoodDeliveryOperator` which has operations like search something about the app, ask a general query or place an order.
-The framework intelligently decides which operation to call and the required arguments from the user input.
+`Operator` - main class that intelligently plans which operation (function) to invoke, e.g.:
+* [`OnboardingOperator`](examples/test_onboarding.py): calls operations to extract and save user information like name, email, age, etc.
+* [`FoodDeliveryOperator`](examples/test_food_delivery.py): calls operations to search an FAQ or place an order.
+* [`MotivationOperator`](examples/test_motivation.py): calls operations to send different types of messages to users to motivate, remind, or follow up with them.
 
-`Operation` - functions within your operator class which carry the business logic. Multiple operations reside within an operator.
-Eg: setAge, setEmailAddress, setHeight.
+`Operation` - functions that your Operator can invoke. Multiple operations can reside within an Operator. For example: 
+* [`OnboardingOperator`](examples/test_onboarding.py): setAge, setEmailAddress, setHeight.
+* [`FoodDeliveryOperator`](examples/test_food_delivery.py): search, order, noop.
+* [`MotivationOperator`](examples/test_motivation.py): setReminder, sendCongratsMessage, sendFollowupMessage.
+These operations also include parameters that you want the Operator to extract in order to properly invoke these operations. For example, in `setAge`, the desired parameter would be `age` that can be extracted and then, for example, saved in a database about the user.
 
-You can also allow chat through your operator by defining a chat operation. Here you can pass your own fine-tuned LLM model to chat with the user. 
-Eg: `FoodDeliveryOperator` in `test_food_delivery.py` instantiates a chat LLM to chat with the user. Operation `noop` is invoked when a general query is detected. This operation calls the chat LLM to send an appropriate response to the user.
+Connect your Chat LLM to your Operator. An example of this in the [`FoodDeliveryOperator`](examples/test_food_delivery.py) when no specific operation is selected, and the user is just chatting generally:
+```
+Query: Are there any exercises I can do to lose weight?
+selected operation: noop
 
-![chat.png](images%2Fchat.png)
+It is indicated that this is a general query. So redirecting to a general chat LLM.
+Calling general chat LLM...
+output=
+   Yes, there are many exercises that can help you lose weight. Cardiovascular exercises such as running, cycling, and swimming are effective for burning calories and improving cardiovascular health. Resistance training, such as weightlifting or bodyweight exercises, can also help build muscle mass, which can increase your metabolism and help you lose weight.
+```
 
+You can, of course, customize this to your own finetuned chat LLMs.
 
 #### How to create an Operator?
 Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
