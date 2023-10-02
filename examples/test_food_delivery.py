@@ -1,9 +1,11 @@
 import os
+import re
+import argparse
 
 from llm_operator import Operator
 from llama import LlamaV2Runner
+
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
-import re
 
 class FoodDeliveryOperator(Operator):
     def __init__(self):
@@ -65,33 +67,66 @@ class FoodDeliveryOperator(Operator):
         """
         return self.run(mssg)
 
+def train(operator_save_path, training_data=None):
+    """Trains the Operator."""
+    foodOperator = FoodDeliveryOperator()
+    foodOperator.add_operations()
+    foodOperator.train(training_data, operator_save_path)
+    print('Done training!')
 
-if __name__ == '__main__':
-    # train an operator. then do  inference based on the trained operator.
-    # #optional training file path, keep it None if you only want to prompt-train
-    # training_file = "examples/models/clf/FoodDeliveryOperator/train_clf.csv"
-    # operator_save_path = "examples/models/clf/FoodDeliveryOperator/"
-    # foodOperator = FoodDeliveryOperator()
-    # foodOperator.add_operations()
-    # foodOperator.train(training_file, operator_save_path)
-    # query = "I want 10l of milk."
-    # response = foodOperator(query)
-
-    # only inference based on saved operator
-    operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl"
+def inference(queries, operator_save_path):
     foodOperator = FoodDeliveryOperator().load(operator_save_path)
     foodOperator.add_operations()
-    query1 = "Add 2 gallons of milk to my cart."
-    print(f"\n\nQuery: {query1}")
-    response1 = foodOperator(query1)
-    print(response1)
-    query2 = "What are the benefits of upgrading my membership?"
-    print(f"\n\nQuery2: {query2}")
-    response2 = foodOperator(query2)
-    print(response2)
-    query3 = "Are there any exercises I can do to lose weight?"
-    print(f"\n\nQuery3: {query3}")
-    response3 = foodOperator(query3)
-    print(response3)
+    
+    for query in queries:
+        print(f"\n\nQuery: {query}")
+        response = foodOperator(query)
+        print(response)
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--operator_save_path",
+        type=str,
+        help="Path to save the operator / use the saved operator.",
+        default="examples/models/clf/FoodDeliveryOperator/",
+    )
+
+    parser.add_argument(
+        "--training_data",
+        type=str,
+        help="Path to dataset (CSV) to train on. Optional.",
+        default="examples/models/clf/FoodDeliveryOperator/train_clf.csv",
+    )
+
+    parser.add_argument(
+        "--train",
+        action="store_true",
+        help="Train the model.",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--query",
+        type=str,
+        nargs="+",
+        action="extend",
+        help="Queries to run",
+        default=[],
+    )
+
+    args = parser.parse_args()
+
+    if args.train:
+        train(args.operator_save_path, args.training_data)
+    
+    default_queries = ["I want to order 2 gallons of milk.", "What are the benefits of upgrading my membership?", "Are there any exercises I can do to lose weight?"]
+    queries = args.query if args.query else default_queries
+    inference(queries, args.operator_save_path)
+
+if __name__ == '__main__':
+    main()
+
 
 

@@ -31,6 +31,11 @@ It is indicated that the user wants to invoke cart/order operation.
 Calling orders API with: item_name=milk, quantity=2, unit=gallons
 ```
 
+You can also run your own queries like this:
+```bash
+python examples/test_food_delivery.py --query "Add 2 gallons of milk to my cart." "I want 1 liter of milk."
+```
+
 ### Chat x Operator
 LLM Operators can work hand in hand with your other LLMs, e.g. for Q&A, chat, etc.:
 ```
@@ -84,6 +89,14 @@ operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl" # sav
 operator.train(optional_training_filepath, operator_save_path)
 ```
 Fun fact: `clf` stands for classifier, because your operator is actually classifying a user request into different operations!
+
+The CSV data used is really simple and looks like [this](examples/models/clf/FoodDeliveryOperator/train_clf.csv):
+```
+class_name,data
+search, "how do i track deliveries? substitutions?"
+order, "I'd like to buy a bag of granny smith apples"
+noop, "sometimes I dream of home"
+```
 
 5. Use your finetuned Operator — on as many user queries as you'd like!
 ```

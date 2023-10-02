@@ -20,10 +20,11 @@ class Operator:
         self.router=None
         self.model_load_path = None
 
-    def load(self, router_path):
+    def load(self, path):
         '''
         Load the routing operator from the given path.
         '''
+        router_path = path + "router.pkl"
         if not os.path.exists(router_path):
             raise Exception("Operator path does not exist. Please train your operator first or check the path passed.")
         if router_path and not router_path.endswith(".pkl"):
@@ -159,7 +160,7 @@ class Operator:
         self.model_load_path = router_save_path + "router.pkl"
         if os.path.exists(self.model_load_path):
             print("Operator already trained. Loading from saved path.")
-            self.load(self.model_load_path)
+            self.load(router_save_path)
             return
         self.router = RoutingOperator(self.model_load_path)
         classes_dict = self.__get_classes_dict()
