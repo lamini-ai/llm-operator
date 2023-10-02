@@ -3,7 +3,7 @@ Create your own operator!
 
 Build an LLM operator to intelligently plan, select, and invoke different functions in your application, ie. functions, APIs, or tools to use.
 
-For example, a user might say `who me? I am of age fifty nine, my friend.` Given this, you want to extract the age from this message and store it in a database. So, you would expect the LLM to call a function `setAge` that extracts the correct age `{'age': 59}` and then stores it in a database.
+For example, a user might say `who me? I am of age fifty nine, my friend.` Given this, you want to initiate an operation to extract the age from this message and say, store it in a database. So, you would expect the LLM to call a function `setAge` that extracts the correct age `{'age': 59}` and then stores it in a database.
 
 #### Workflow: LLM Onboarding Operator
 Here's an example. You are building an application with a chat-based onboarding flow that gathers information about the user's demographic information, e.g. age and height, as your LLM has a conversation with the user.
@@ -26,7 +26,7 @@ def setAge(self, age: int):
     """
 ```
 
-Next, adding prompt-engineered descriptions to the parameters also provides contextual information to the LLM Operator:
+Next, add prompt-engineered descriptions to the parameters to provide contextual information to the LLM Operator:
 ```
 def setAge(self, age: int):
     """
@@ -53,31 +53,45 @@ def setAge(self, age: int):
 
 Now, add additional operations! In our example, you can also see setting the height of the user. 
 
-The key to getting your Operator to plan correctly is through train it to route to the right operations.
+The key to getting your Operator to plan correctly is through training it to route to the right operations.
 
-Additionally, you can also train an operator to call other operators which in turn call the desired operations! Build a chain of operations and define a flow of your application.
-
-For example, see `test_main.py` which is an Operator that can call `OnboardingOperator` or `MotivationOperator` based on user input!
+Additionally, you can also train an operator to call other operators which in turn call the desired operations!
+For example, see `test_main.py` which has a `MainAppOperator` that can call `OnboardingOperator` or `MotivationOperator` based on user input!
 ![fullApp.png](images%2FfullApp.png)
+
+Build a chain of operations and define a flow of your application.
 
 ### Framework
 
-`Operator` - the main entity that encapsulates similar operations together.
-Eg: OnboardingOperator which has operations to understand and save user information like name, email, age, etc.
-
-`Operation` - multiple operations reside within an operator. The operator calls these operations based on user inputs to do the desired operation.
-Eg: setAge, setEmailAddress, setHeight.
-
+`Operator` - the main entity(class) that encapsulates similar operations together.
+Eg: `OnboardingOperator` which has operations to understand and save user information like name, email, age, etc.
+`FoodDeliveryOperator` which has operations like search seomthing about the app, ask a general query or place an order.
 The framework intelligently decides which operation to call and the required arguments from the user input.
+
+`Operation` - functions within your operator class which carry the business logic. Multiple operations reside within an operator.
+Eg: setAge, setEmailAddress, setHeight.
+You can also allow chat through your operator by defining a chat operation. Here you can pass your own fine-tuned LLM model to chat with the user. 
+Eg: `FoodDeliveryOperator` instantiates a chat LLM to chat with the user. Operation `noop` is invoked when a general query is detected. This operation calls the chat LLM to send an appropriate response to the user.
+
 
 ### Steps:
 
 1. Create your operator class. Examples in `test_onboarding.py`, `test_motivation.py` and `test_main.py`. 
-2. Create Operations within the Operator to define what kind of tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it. You can allow chat through your operator by defining a chat operation. Here you can pass your own finetuned LLM model to chat with the user. See `noop` in `test_food_delivery.py` for an example.
+2. Create operations within the Operator to define what kind of tasks you want to do. Follow the docstring format for each function to specify the description of the operation and each parameter within it.
 3. Add all your desired operations using `operator.add_operation(<operation_callback>)`.
-4. For the very first time, you would have to train your operator to distinguish between defined operations. Train using `operator.train()`. You can guide the operator training logic by providing a docstring inside each operation. Alternatively, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy.
-5. Going forward, you can just load the operator using something like `operator = OnboardingOperator().load(<operator_save_path>)`.
-6. You can then pass user input to it using `response = operator(<query>)`.
+4. Train your operator by providing docstrings inside each operation to clarify their purpose. Additionally, you can also train it with some labelled examples like in `train_clf.csv`. This is recommended for accuracy. 
+
+    Train using `operator.train(<optional_training_file_path>, <operator_save_path>)`.
+
+    See `train_clf.csv` for an example of what a training file should look like.
+5. After training, you can load your trained operator using something like `operator = OnboardingOperator().load(<operator_save_path>)`.
+6. Now, you can start using your operator for routing between operations and executing the right one using `response = operator(<query>)`.
+
+### How to recreate and run your operator
+1. You can create an operator class like in `examples/test_food_delivery.py`.
+2. You can change the operator(class) name, operations(functions) and their descriptions as per your use case. Define your own business logic within each operation.
+3. Check `main()` to see how to execute your operator framework.
+4. Run the file using `python3 examples/test_food_delivery.py`.
 
 ### Examples
 Onboarding Operator example

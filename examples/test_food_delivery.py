@@ -7,6 +7,10 @@ import re
 
 class FoodDeliveryOperator(Operator):
     def __init__(self):
+        """
+        invoke all 'Operator' class methods here.
+        Additionally, define any other entities required within any operation.
+        """
         super().__init__()
         self.chat_model = LlamaV2Runner()
 
@@ -50,29 +54,32 @@ class FoodDeliveryOperator(Operator):
         clean_response = re.sub(r'\.{2,}', '.', model_response)
         return f"Calling general query LLM...\nuser query= {message} \n\noutput=\n{clean_response}"
 
+    def add_operations(self):
+        self.add_operation(self.search)
+        self.add_operation(self.order)
+        self.add_operation(self.noop)
     def __call__(self, mssg):
+        """
+        calls parent class 'run' method to take appropriate action based on the user query.
+        """
         return self.run(mssg)
 
 
 if __name__ == '__main__':
-    # train and  inference
-    # #optional training file path
-    # training_file = None
-    # router_save_path = "examples/models/clf/FoodDeliveryOperator/"
+    # train an operator. then do  inference based on the trained operator.
+    # #optional training file path, keep it None if you only want to prompt-train
+    # training_file = "examples/models/clf/FoodDeliveryOperator/train_clf.csv"
+    # operator_save_path = "examples/models/clf/FoodDeliveryOperator/"
     # foodOperator = FoodDeliveryOperator()
-    # foodOperator.add_operation(foodOperator.search)
-    # foodOperator.add_operation(foodOperator.order)
-    # foodOperator.add_operation(foodOperator.noop)
-    # foodOperator.train(training_file, router_save_path)
+    # foodOperator.add_operations()
+    # foodOperator.train(training_file, operator_save_path)
     # query = "I want 10l of milk."
     # response = foodOperator(query)
 
-    # inference
-    router_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl"
-    foodOperator = FoodDeliveryOperator().load(router_save_path)
-    foodOperator.add_operation(foodOperator.search)
-    foodOperator.add_operation(foodOperator.order)
-    foodOperator.add_operation(foodOperator.noop)
+    # only inference based on saved operator
+    operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl"
+    foodOperator = FoodDeliveryOperator().load(operator_save_path)
+    foodOperator.add_operations()
     query1 = "I want 10l of milk."
     print(f"\n\nQuery: {query1}")
     response1 = foodOperator(query1)
@@ -83,7 +90,7 @@ if __name__ == '__main__':
     print(response2)
     query3 = "Are there any exercises I can do to lose weight?"
     print(f"\n\nQuery2: {query3}")
-    response3= foodOperator(query3)
+    response3 = foodOperator(query3)
     print(response3)
 
 

@@ -25,7 +25,7 @@ class Operator:
         Load the routing operator from the given path.
         '''
         if not os.path.exists(router_path):
-            raise Exception("Router path does not exist.")
+            raise Exception("Operator path does not exist. Please train your operator first or check the path passed.")
         if router_path and not router_path.endswith(".pkl"):
             raise Exception("Model pickle file not detected.")
         self.model_load_path = router_path
@@ -157,6 +157,10 @@ class Operator:
             print("Training file does not exist. Continuing without it.")
 
         self.model_load_path = router_save_path + "router.pkl"
+        if os.path.exists(self.model_load_path):
+            print("Operator already trained. Loading from saved path.")
+            self.load(self.model_load_path)
+            return
         self.router = RoutingOperator(self.model_load_path)
         classes_dict = self.__get_classes_dict()
         self.router.fit(classes_dict, training_file)

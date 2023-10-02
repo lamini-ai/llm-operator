@@ -16,8 +16,8 @@ class MainApp(Operator):
         """
         print("\nIt is indicated that the user is new and needs to be onboarded.")
         print("callOnboardingOperator...\n")
-        router_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
-        operator = OnboardingOperator().load(router_save_path)
+        operator_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
+        operator = OnboardingOperator().load(operator_save_path)
         operator.add_operations()
         return operator(message)
 
@@ -30,8 +30,8 @@ class MainApp(Operator):
         """
         print("\nIt is indicated that this meant to be a motivational message.")
         print("callMotivationOperator...\n")
-        router_save_path = "examples/models/clf/MotivationOperator/router.pkl"
-        operator = MotivationOperator().load(router_save_path)
+        operator_save_path = "examples/models/clf/MotivationOperator/router.pkl"
+        operator = MotivationOperator().load(operator_save_path)
         operator.add_operations()
         return operator(message)
 
@@ -47,16 +47,16 @@ if __name__ == '__main__':
     # train and  inference
     # #optional training file path
     # training_file = None
-    # router_save_path = "examples/models/clf/MainApp/"
+    # operator_save_path = "examples/models/clf/MainApp/"
     # operator = MainApp()
     # operator.add_operations()
-    # operator.train(training_file, router_save_path)
+    # operator.train(training_file, operator_save_path)
     # query = "You missed your workout yesterday. Just wanted to check in!"
     # response = operator(query)
 
     # inference
-    router_save_path = "examples/models/clf/MainApp/router.pkl"
-    operator = MainApp().load(router_save_path)
+    operator_save_path = "examples/models/clf/MainApp/router.pkl"
+    operator = MainApp().load(operator_save_path)
     operator.add_operations()
 
     query2 = "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together."
