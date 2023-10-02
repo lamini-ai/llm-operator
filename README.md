@@ -16,7 +16,9 @@ You can run it directly like this:
 ```bash
 python examples/test_food_delivery.py
 ```
-Be sure to install the requirements first: `pip install -r requirements.txt`
+Notes:
+* Install the requirements first: `pip install -r requirements.txt`.
+* Include this repo in your python path: `export PYTHONPATH=$PYTHONPATH:./`.
 
 Here is the Food Delivery Operator's thought process and plan:
 ```
