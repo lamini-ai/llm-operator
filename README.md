@@ -76,7 +76,7 @@ operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl" # sav
 
 operator.train(optional_training_filepath, operator_save_path)
 ```
-Fun fact: `clf` stands for classifier, because your operator is actually routing between its operations!
+Fun fact: `clf` stands for classifier, because your operator is actually classifying a user request into different operations!
 
 5. Use your finetuned Operator:
 ```
@@ -86,8 +86,9 @@ finetuned_operator = FoodDeliveryOperator().load(operator_save_path)
 6. Now, use it for as many user queries as you'd like!
 ```
 user_query = "I want 10l of milk."
-response = operator(user_query)
+response = finetuned_operator(user_query)
 ```
+Hook your custom LLM up to your production application with a simple [REST API](https://lamini-ai.github.io/API/completions/) call.
 
 ## Operator Framework - super simple!
 
