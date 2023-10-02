@@ -90,6 +90,14 @@ operator.train(optional_training_filepath, operator_save_path)
 ```
 Fun fact: `clf` stands for classifier, because your operator is actually classifying a user request into different operations!
 
+The CSV data used is really simple and looks like [this](examples/models/clf/FoodDeliveryOperator/train_clf.csv):
+```
+class_name,data
+search, "how do i track deliveries? substitutions?"
+order, "I'd like to buy a bag of granny smith apples"
+noop, "sometimes I dream of home"
+```
+
 5. Use your finetuned Operator — on as many user queries as you'd like!
 ```
 finetuned_operator = FoodDeliveryOperator().load(operator_save_path)

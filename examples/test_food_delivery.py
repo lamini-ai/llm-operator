@@ -67,11 +67,11 @@ class FoodDeliveryOperator(Operator):
         """
         return self.run(mssg)
 
-def train(operator_save_path, training_file=None):
+def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     foodOperator = FoodDeliveryOperator()
     foodOperator.add_operations()
-    foodOperator.train(training_file, operator_save_path)
+    foodOperator.train(training_data, operator_save_path)
     print('Done training!')
 
 def inference(queries, operator_save_path):
@@ -94,9 +94,9 @@ def main():
     )
 
     parser.add_argument(
-        "--training_file",
+        "--training_data",
         type=str,
-        help="Path to dataset (CSV) to train on.",
+        help="Path to dataset (CSV) to train on. Optional.",
         default="examples/models/clf/FoodDeliveryOperator/train_clf.csv",
     )
 
@@ -119,7 +119,7 @@ def main():
     args = parser.parse_args()
 
     if args.train:
-        train(args.operator_save_path, args.training_file)
+        train(args.operator_save_path, args.training_data)
     
     default_queries = ["I want to order 2 gallons of milk.", "What are the benefits of upgrading my membership?", "Are there any exercises I can do to lose weight?"]
     queries = args.query if args.query else default_queries
