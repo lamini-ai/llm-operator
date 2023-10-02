@@ -1,7 +1,7 @@
 ## LLM Operator framework 
 Create your own operator! 
 
-Build an LLM operator to intelligently plan, select, and invoke different functions in your application, ie. functions, APIs, or tools to use.
+Build an LLM operator to intelligently plan, select, and invoke different functions in your application.
 
 ```
 foodOperator = FoodDeliveryOperator()
