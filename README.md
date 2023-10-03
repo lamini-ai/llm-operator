@@ -50,13 +50,13 @@ This is how we trained the Operator above.
 ./food_delivery_operator.sh --train --operator_save_path models/AnotherFoodDeliveryOperator/ --training_data data/food_delivery.csv
 ```
 
-We include ~30 (super simple datapoints)(data/food_delivery.csv) to get a boost in performance, beyond just prompt-engineering. You can also use NO data, and just prompt-engineer -- or as we say "prompt-train"! A few rows of data:
-```
-class_name,data
-search, "how do i track deliveries? substitutions?"
-order, "I'd like to buy a bag of granny smith apples"
-noop, "sometimes I dream of home"
-```
+We include ~30 [super simple datapoints](data/food_delivery.csv) to get a boost in performance, beyond just prompt-engineering. You can also use NO data, and just prompt-engineer -- or as we say "prompt-train"! A few rows of data:
+| class_name | data                                               |
+|------------|----------------------------------------------------|
+| search     | "how do i track deliveries? substitutions?"       |
+| order      | "I'd like to buy a bag of granny smith apples"    |
+| noop       | "sometimes I dream of home"                        |
+
 
 Run your finetuned Operator on your own queries, just as above:
 ```bash
@@ -111,12 +111,12 @@ operator.train(training_data, operator_save_path)
 ```
 
 The CSV data used is really simple and looks like [this](data/food_delivery.csv), with the correct `class_name` (operation name) and `data` (user query):
-```
-class_name,data
-search, "how do i track deliveries? substitutions?"
-order, "I'd like to buy a bag of granny smith apples"
-noop, "sometimes I dream of home"
-```
+| class_name | data                                               |
+|------------|----------------------------------------------------|
+| search     | "how do i track deliveries? substitutions?"       |
+| order      | "I'd like to buy a bag of granny smith apples"    |
+| noop       | "sometimes I dream of home"                        |
+
 
 5. Use your finetuned Operator — on as many user queries as you'd like!
 ```bash
