@@ -38,6 +38,16 @@ class LLMRoutingAgent:
             save_path = f"{self.model_load_path}/{cl}.pkl"
             classifier.save(save_path)
 
+    def train_with_prompt(self, classes_dict):
+        for cl, prompt in classes_dict.items():
+            classifier = LaminiClassifier()
+            operation_prompt_dict= {}
+            operation_prompt_dict[cl] = prompt
+            operation_prompt_dict["not"+cl] = f"is totally opposite and has nothing to do with {cl} which is {prompt}"
+            classifier.prompt_train(operation_prompt_dict)
+            save_path = f"{self.model_load_path}/{cl}.pkl"
+            classifier.save(save_path)
+
     def fit(self, classes_dict, training_data_path = None):
         '''
         to train/prompt-train the routing classifier.
@@ -49,6 +59,8 @@ class LLMRoutingAgent:
         print("Training operator...")
         if training_data_path:
             self.train_with_data(classes_dict, training_data_path)
+        else:
+            self.train_with_prompt(classes_dict)
 
     def predict(self, data, classes_dict):
         '''
