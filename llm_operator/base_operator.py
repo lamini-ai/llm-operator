@@ -9,12 +9,13 @@ from llm_routing_agent import LLMRoutingAgent
 
 
 class Operator:
-    def __init__(self) -> None:
+    def __init__(self, model_name = "meta-llama/Llama-2-7b-chat-hf", routing_threshold = 0.3) -> None:
         self.operations = {}
         self.prompt = BlankPrompt()
-        self.model_name = "meta-llama/Llama-2-7b-chat-hf"
+        self.model_name = model_name
         self.router = None
         self.model_load_path = None
+        self.routing_threshold = routing_threshold
 
     def load(self, path):
         '''
@@ -148,7 +149,7 @@ class Operator:
             print("Operator already trained. Loading from saved path.")
             self.load(router_save_path)
             return
-        self.router = LLMRoutingAgent(self.model_load_path)
+        self.router = LLMRoutingAgent(self.model_load_path, self.routing_threshold)
         classes_dict = self.__get_classes_dict()
         self.router.fit(classes_dict, training_file)
 
@@ -163,7 +164,7 @@ class Operator:
 
         classes_dict = self.__get_classes_dict()
         selected_operations = self.select_operations(query, classes_dict)
-        print(f"selected operation: {selected_operations}")
+        print(f"\nselected operations: {selected_operations}")
         t = []
         for op in selected_operations:
             generated_arguments = self.select_arguments(query, op)
