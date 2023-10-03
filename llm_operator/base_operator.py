@@ -9,22 +9,25 @@ from llm_routing_agent import LLMRoutingAgent
 
 
 class Operator:
-    def __init__(self) -> None:
+    def __init__(self, model_name = "meta-llama/Llama-2-7b-chat-hf", routing_threshold = 0.3) -> None:
         self.operations = {}
         self.prompt = BlankPrompt()
-        self.model_name = "meta-llama/Llama-2-7b-chat-hf"
+        self.model_name = model_name
         self.router = None
         self.model_load_path = None
+        self.routing_threshold = routing_threshold
 
     def load(self, path):
         '''
         Load the routing operator from the given path.
         '''
-        router_path = path + "router.pkl"
+        router_path = path
         if not os.path.exists(router_path):
             raise Exception("Operator path does not exist. Please train your operator first or check the path passed.")
-        self.model_load_path = router_path
-        self.router = LLMRoutingAgent(self.model_load_path)
+        for operator_name in self.operations:
+            model_path = os.path.join(router_path, operator_name + ".pkl")
+            if not os.path.exists(model_path):
+                raise Exception(f"Model for operation {operator_name} not found. Please train your operator for this operation as well.")
         return self
 
     def __generate_args_prompt(self):
@@ -83,13 +86,12 @@ class Operator:
             "arguments": arguments,
         }
 
-    def select_operations(self, query):
+    def select_operations(self, query, classes_dict):
         '''
-        selects which tool to use
+        selects which tools to use
         '''
-        # Can adapt to predict multiple operations
-        predicted_cls, prob = self.router.predict([query])
-        return predicted_cls[0]
+        predicted_ops = self.router.predict([query], classes_dict)
+        return predicted_ops[0]
 
     def select_arguments(
             self,
@@ -147,10 +149,9 @@ class Operator:
             print("Operator already trained. Loading from saved path.")
             self.load(router_save_path)
             return
-        self.router = LLMRoutingAgent(self.model_load_path)
+        self.router = LLMRoutingAgent(self.model_load_path, self.routing_threshold)
         classes_dict = self.__get_classes_dict()
         self.router.fit(classes_dict, training_file)
-        self.router.save(self.model_load_path)
 
     def run(self, query: str):
         '''
@@ -159,15 +160,19 @@ class Operator:
         That tool is then called. Tool output is returned.
         '''
         if not self.model_load_path:
-            raise Exception("Router not loaded.")
-        
-        selected_operation = self.select_operations(query)
-        print(f"selected operation: {selected_operation}")
-        generated_arguments = self.select_arguments(query, selected_operation)
-        print(f"inferred arguments: {generated_arguments}")
-        action = self.__get_operation_to_run(selected_operation)["action"]
-        tool_output = action(**generated_arguments)
-        return tool_output
+            raise Exception("Operator not loaded.")
+
+        classes_dict = self.__get_classes_dict()
+        selected_operations = self.select_operations(query, classes_dict)
+        print(f"\nselected operations: {selected_operations}")
+        t = []
+        for op in selected_operations:
+            generated_arguments = self.select_arguments(query, op)
+            print(f"inferred arguments for {op}: {generated_arguments}")
+            action = self.__get_operation_to_run(op)["action"]
+            tool_output = action(**generated_arguments)
+            t.append(tool_output)
+        return t
     
     def __call__(self, query: str):
         return self.run(query)
