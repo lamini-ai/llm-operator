@@ -2,10 +2,11 @@ import re
 import os
 from textwrap import dedent
 from typing import Optional
+
 from llama import Lamini
 from llama.prompts.blank_prompt import BlankPrompt
-from routing_operator import RoutingOperator
-import os
+from llm_routing_agent import LLMRoutingAgent
+
 
 class Operator:
     def __init__(self) -> None:
@@ -25,7 +26,7 @@ class Operator:
         if router_path and not router_path.endswith(".pkl"):
             raise Exception("Model pickle file not detected.")
         self.model_load_path = router_path
-        self.router = RoutingOperator(self.model_load_path)
+        self.router = LLMRoutingAgent(self.model_load_path)
         return self
 
     def __generate_args_prompt(self):
@@ -148,7 +149,7 @@ class Operator:
             print("Operator already trained. Loading from saved path.")
             self.load(router_save_path)
             return
-        self.router = RoutingOperator(self.model_load_path)
+        self.router = LLMRoutingAgent(self.model_load_path)
         classes_dict = self.__get_classes_dict()
         self.router.fit(classes_dict, training_file)
         self.router.save(self.model_load_path)

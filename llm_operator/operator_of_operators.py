@@ -1,9 +1,9 @@
 import os
 import argparse
 
-from examples.test_motivation import MotivationOperator
-from examples.test_onboarding import OnboardingOperator
-from llm_operator import Operator
+from motivation_operator import MotivationOperator
+from onboarding_operator import OnboardingOperator
+from base_operator import Operator
 
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
@@ -12,10 +12,10 @@ class MainApp(Operator):
     def __init__(self):
         super().__init__()
         
-        self.onboarding_operator_save_path = "examples/models/clf/OnboardingOperator/"
+        self.onboarding_operator_save_path = "models/OnboardingOperator/"
         self.onboarding_operator = OnboardingOperator().load(self.onboarding_operator_save_path)
 
-        self.motivation_operator_save_path = "examples/models/clf/MotivationOperator/"
+        self.motivation_operator_save_path = "models/MotivationOperator/"
         self.motivation_operator = MotivationOperator().load(self.motivation_operator_save_path)
     
         self.add_operation(self.call_onboarding_operator)
@@ -65,7 +65,7 @@ def main():
         "--operator_save_path",
         type=str,
         help="Path to save the operator / use the saved operator.",
-        default="examples/models/clf/MainApp/",
+        default="models/MainApp/",
     )
 
     parser.add_argument(

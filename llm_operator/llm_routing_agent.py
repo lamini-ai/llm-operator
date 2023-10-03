@@ -1,9 +1,10 @@
-from lamini import LaminiClassifier
 import os
 import pandas as pd
 
+from lamini import LaminiClassifier
 
-class RoutingOperator:
+
+class LLMRoutingAgent:
     def __init__(self, model_load_path):
         self.model_load_path = model_load_path
         if not os.path.exists(self.model_load_path):
