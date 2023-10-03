@@ -34,11 +34,9 @@ class Operator:
         'User message': the input message from the user.
         'Tool chosen': tool chosen and its function.
         'Arguments list': the list of arguments required for the tool. This includes argument name, type and description.
-        Eg: 'Arguments list': {{['name': 'arg1', 'type': 'string', 'description': 'sample description']}}
 
         Output format:
         'Output': a dictionary of argument names and values.
-        Eg: 'Output' :{{'arg1': 'value1', 'arg2': 'value2'}}
         <</SYS>>
 
         Given:
