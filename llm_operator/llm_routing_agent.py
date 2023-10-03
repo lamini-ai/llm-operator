@@ -5,7 +5,7 @@ from lamini import LlamaClassifier
 class LLMRoutingAgent:
     def __init__(self, model_load_path):
         self.model_load_path = model_load_path
-        self.ROUTING_THRESHOLD = 0.4
+        self.ROUTING_THRESHOLD = 0.3
 
     def __load_clf(self, cl):
         '''
