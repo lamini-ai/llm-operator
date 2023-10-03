@@ -1,11 +1,14 @@
 import ast
 import re
+import os
 from textwrap import dedent
 from typing import Optional
+
 from llama import LLMEngine
 from llama.prompts.blank_prompt import BlankPrompt
+
 from routing_operator import RoutingOperator
-import os
+
 
 class Operator:
     def __init__(self) -> None:
@@ -90,7 +93,7 @@ class Operator:
         '''
         selects which tool to use
         '''
-        # TODO: predict multiple operations
+        # Can adapt to predict multiple operations
         predicted_cls, prob = self.router.predict([query])
         return predicted_cls[0]
 
@@ -114,7 +117,7 @@ class Operator:
             input=self.prompt.input(input=prompt_str),
             output_type=self.prompt.output
         )
-        # TODO: remove when using jsonformer
+        # TODO: remove for jsonform
         generated_arguments = self.__parse_argument_output(model_response.output)
         return ast.literal_eval(generated_arguments)
 
@@ -122,7 +125,6 @@ class Operator:
         '''
         Parse the exact argument output.
         '''
-        # output_match = re.search(r"'Output':\s*({.*?})", response)
         output_match = re.search(r"'Output':\s*({[^}]+})", response)
 
         if output_match:
@@ -175,10 +177,17 @@ class Operator:
         '''
         if not self.model_load_path:
             raise Exception("Router not loaded.")
+        
         selected_operation = self.select_operations(query)
         print(f"selected operation: {selected_operation}")
-        generated_arugments = self.select_arguments(query, selected_operation)
-        print(f"inferred arguments: {generated_arugments}")
+        
+        generated_arguments = self.select_arguments(query, selected_operation)
+        print(f"inferred arguments: {generated_arguments}")
+        
         action = self.__get_operation_to_run(selected_operation)["action"]
-        tool_output = action(**generated_arugments)
+        tool_output = action(**generated_arguments)
+        
         return tool_output
+    
+    def __call__(self, query: str):
+        self.run(query)

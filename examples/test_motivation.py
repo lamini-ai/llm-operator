@@ -1,11 +1,19 @@
 import os
+import argparse
+
 from llm_operator import Operator
-from datetime import date
 
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
 class MotivationOperator(Operator):
+    def __init__(self):
+        super().__init__()
+
+        self.add_operation(self.setReminder)
+        self.add_operation(self.sendCongratsMessage)
+        self.add_operation(self.sendFollowupMessage)
+
     def setReminder(self, workout_name: str, workout_time: str):
         """
         set a reminder message to the user to do workout.
@@ -37,36 +45,67 @@ class MotivationOperator(Operator):
         print("It is indicated to be a follow up message.")
         return "Sending user message=" + message
 
-    def add_operations(self):
-        self.add_operation(self.setReminder)
-        self.add_operation(self.sendCongratsMessage)
-        self.add_operation(self.sendFollowupMessage)
 
-    def __call__(self, mssg):
-        return self.run(mssg)
+def train(operator_save_path, training_data=None):
+    """Trains the Operator."""
+    operator = MotivationOperator()
+    operator.train(training_data, operator_save_path)
+    print('Done training!')
+
+def inference(queries, operator_save_path):
+    operator = MotivationOperator().load(operator_save_path)
+    
+    for query in queries:
+        print(f"\n\nQuery: {query}")
+        response = operator(query)
+        print(response)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--operator_save_path",
+        type=str,
+        help="Path to save the operator / use the saved operator.",
+        default="examples/models/MotivationOperator/",
+    )
+
+    parser.add_argument(
+        "--training_data",
+        type=str,
+        help="Path to dataset (CSV) to train on. Optional.",
+        default="examples/data/motivation.csv",
+    )
+
+    parser.add_argument(
+        "--train",
+        action="store_true",
+        help="Train the model.",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--query",
+        type=str,
+        nargs="+",
+        action="extend",
+        help="Queries to run",
+        default=[],
+    )
+
+    args = parser.parse_args()
+
+    if args.operator_save_path[-1] != "/":
+        args.operator_save_path += "/"
+
+    if args.train:
+        train(args.operator_save_path, args.training_data)
+    
+    default_queries = ["Yay you did it. This is awesome!", "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together."]
+    queries = args.query if args.query else default_queries
+    inference(queries, args.operator_save_path)
 
 
 if __name__ == '__main__':
-    # train and  inference
-    # #optional training file path
-    # training_file = None
-    # operator_save_path = "examples/models/clf/MotivationOperator/"
-    # operator = MotivationOperator()
-    # operator.add_operations()
-    # operator.train(training_file, operator_save_path)
-    # query = "Yay you did it. This is awesome!"
-    # response = operator(query)
-
-    # inference
-    operator_save_path = "examples/models/clf/MotivationOperator/router.pkl"
-    operator = MotivationOperator().load(operator_save_path)
-    operator.add_operations()
-
-    query2 = "Yay you did it. This is awesome!"
-    print(f"\n\nQuery: {query2}")
-    response2 = operator(query2)
-    print(response2)
-    query3 = "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together."
-    print(f"\n\nQuery: {query3}")
-    response3 = operator(query3)
-    print(response3)
+    main()
