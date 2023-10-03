@@ -9,7 +9,6 @@ from llama.prompts.blank_prompt import BlankPrompt
 
 from routing_operator import RoutingOperator
 
-
 class Operator:
     def __init__(self) -> None:
         self.operations = {}
@@ -36,24 +35,25 @@ class Operator:
         self.router = RoutingOperator(self.model_load_path)
         return self
 
-    def __generate_args(self):
+    def __generate_args_prompt(self):
         prompt_template = """\
-        <s>[INST] For the given operation, find out what arguments to call the tool with.
-         For the following input format:
+        <s>[INST] <<SYS>> For the given operation, find out the values of the arguments to call the tool with. For the following input format:
         'User message': the input message from the user.
         'Tool chosen': tool chosen and its function.
-        'Output types': the tool requires some arguments to be passed to it. This includes a list of dictionaries containing 'name' which is the name of the argument to be passed to the tool, 'type' which is the type of the argument, 'description' which is the meaning of the argument.
+        'Arguments list': the list of arguments required for the tool. This includes argument name, type and description.
+        Eg: 'Arguments list': {{['name': 'arg1', 'type': 'string', 'description': 'sample description']}}
 
-        Output should be of format:
-        'Output': a json containing the argument names and values as parsed from user message.
+        Output format:
+        'Output': a dictionary of argument names and values.
+        Eg: 'Output' :{{'arg1': 'value1', 'arg2': 'value2'}}
+        <</SYS>>
 
         Given:
-            'User message': {query}
-            'Tool chosen': {operation}
-            'Output types': {args}
+        'User message': {query}
+        'Tool chosen': {operation}
+        'Arguments list': {args}
         generate the 'Output' only. Do not explain the logic.
-        [/INST]
-        """
+        [/INST] """
         prompt_template = dedent(prompt_template)
         return prompt_template
 
@@ -111,16 +111,15 @@ class Operator:
             "operation": operation,
             "args": arguments
         }
-        prompt_template = self.__generate_args()
+        prompt_template = self.__generate_args_prompt()
         prompt_str = prompt_template.format_map(input)
+        print(prompt_str)
         model_response = self.model(
             input=self.prompt.input(input=prompt_str),
-            output_type=self.prompt.output
+            output_type=self.prompt.output,
+            stop_token=["\n", ":", "</s>"]
         )
-        # TODO: remove for jsonform
-        generated_arguments = self.__parse_argument_output(model_response.output)
-        return ast.literal_eval(generated_arguments)
-
+        return model_response
     def __parse_argument_output(self, response):
         '''
         Parse the exact argument output.
