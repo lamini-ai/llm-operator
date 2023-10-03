@@ -19,7 +19,7 @@ class OnboardingOperator(Operator):
         Parameters:
         age: age of the person in years.
         """
-        print("It is indicated to be the age of the user.")
+        print("\nIt is indicated to be the age of the user.")
         return f"Age has been set. Age= {age}"
 
     def setHeight(self, height: int, units: str):
@@ -30,7 +30,7 @@ class OnboardingOperator(Operator):
         height: height of the person in numbers.
         units: units of the height like feet, inches, cm, etc.
         """
-        print("It is indicated to be the height of the user.")
+        print("\nIt is indicated to be the height of the user.")
         return f"Height has been set. Height={height}, units={units}"
 
 
@@ -40,13 +40,15 @@ def train(operator_save_path, training_data=None):
     operator.train(training_data, operator_save_path)
     print('Done training!')
 
+
 def inference(queries, operator_save_path):
     operator = OnboardingOperator().load(operator_save_path)
-    
+
     for query in queries:
         print(f"\n\nQuery: {query}")
         response = operator(query)
         print(response)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -88,10 +90,11 @@ def main():
 
     if args.train:
         train(args.operator_save_path, args.training_data)
-    
-    default_queries = ["who me? I am of age fifty nine, my friend.", "I am 6 feet tall."]
+
+    default_queries = ["who me? I am of age fifty nine, my friend.", "I am 6 feet tall.", "I am 32 years old and 5'4\" in height"]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
+
 
 if __name__ == '__main__':
     main()
