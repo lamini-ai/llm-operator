@@ -1,25 +1,18 @@
-import ast
 import re
 import os
 from textwrap import dedent
 from typing import Optional
-
-from llama import LLMEngine
+from llama import Lamini
 from llama.prompts.blank_prompt import BlankPrompt
-
 from routing_operator import RoutingOperator
+import os
 
 class Operator:
     def __init__(self) -> None:
         self.operations = {}
         self.prompt = BlankPrompt()
         self.model_name = "meta-llama/Llama-2-7b-chat-hf"
-        self.model = LLMEngine(
-            id="operator-fw",
-            prompt=self.prompt,
-            model_name=self.model_name,
-        )
-        self.router=None
+        self.router = None
         self.model_load_path = None
 
     def load(self, path):
@@ -49,13 +42,17 @@ class Operator:
         <</SYS>>
 
         Given:
-        'User message': {query}
-        'Tool chosen': {operation}
-        'Arguments list': {args}
+        'User message': {input:query}
+        'Tool chosen': {input:operation}
+        'Arguments list': {input:args}
         generate the 'Output' only. Do not explain the logic.
         [/INST] """
+
         prompt_template = dedent(prompt_template)
-        return prompt_template
+        model = Lamini(
+            "operator", self.model_name, prompt_template
+        )
+        return model
 
     def get_func_args(self, op):
         '''
@@ -86,7 +83,7 @@ class Operator:
         self.operations[name] = {
             "action": operation,
             "description": description,
-            "arguments": str(arguments),
+            "arguments": arguments,
         }
 
     def select_operations(self, query):
@@ -106,31 +103,21 @@ class Operator:
         Predicts and parses the arguments required to call the tool.
         '''
         arguments = self.__get_operation_to_run(operation)['arguments']
+        output_type = {}
+        for arg in arguments:
+            output_type[arg['name']] = arg['type']
         input = {
             "query": query,
             "operation": operation,
-            "args": arguments
+            "args": str(arguments)
         }
-        prompt_template = self.__generate_args_prompt()
-        prompt_str = prompt_template.format_map(input)
-        print(prompt_str)
-        model_response = self.model(
-            input=self.prompt.input(input=prompt_str),
-            output_type=self.prompt.output,
-            stop_token=["\n", ":", "</s>"]
+        model = self.__generate_args_prompt()
+        model_response = model(
+            input,
+            output_type,
+            stop_tokens=["</s>"]
         )
         return model_response
-    def __parse_argument_output(self, response):
-        '''
-        Parse the exact argument output.
-        '''
-        output_match = re.search(r"'Output':\s*({[^}]+})", response)
-
-        if output_match:
-            output_value = output_match.group(1)
-            return output_value
-        else:
-            print("\nPattern 'Output' not found in the input text.")
 
     def __get_operation_to_run(self, output):
         '''
@@ -179,13 +166,10 @@ class Operator:
         
         selected_operation = self.select_operations(query)
         print(f"selected operation: {selected_operation}")
-        
         generated_arguments = self.select_arguments(query, selected_operation)
         print(f"inferred arguments: {generated_arguments}")
-        
         action = self.__get_operation_to_run(selected_operation)["action"]
         tool_output = action(**generated_arguments)
-        
         return tool_output
     
     def __call__(self, query: str):
