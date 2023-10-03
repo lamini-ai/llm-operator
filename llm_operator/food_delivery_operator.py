@@ -2,7 +2,7 @@ import os
 import re
 import argparse
 
-from llm_operator import Operator
+from base_operator import Operator
 from llama import LlamaV2Runner
 
 
@@ -84,14 +84,14 @@ def main():
         "--operator_save_path",
         type=str,
         help="Path to save the operator / use the saved operator.",
-        default="examples/models/FoodDeliveryOperator/",
+        default="models/FoodDeliveryOperator/",
     )
 
     parser.add_argument(
         "--training_data",
         type=str,
         help="Path to dataset (CSV) to train on. Optional.",
-        default="examples/data/food_delivery.csv",
+        default="data/food_delivery.csv",
     )
 
     parser.add_argument(
