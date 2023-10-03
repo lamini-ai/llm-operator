@@ -9,25 +9,25 @@ from llm_routing_agent import LLMRoutingAgent
 
 
 class Operator:
-    def __init__(self, model_name = "meta-llama/Llama-2-7b-chat-hf", routing_threshold = 0.3) -> None:
+    def __init__(self) -> None:
         self.operations = {}
         self.prompt = BlankPrompt()
-        self.model_name = model_name
-        self.router = None
         self.model_load_path = None
-        self.routing_threshold = routing_threshold
+        self.model_name = "meta-llama/Llama-2-7b-chat-hf"
+        self.routing_threshold = 0.3
 
     def load(self, path):
         '''
         Load the routing operator from the given path.
         '''
-        router_path = path
-        if not os.path.exists(router_path):
+        self.model_load_path = path
+        if not os.path.exists(self.model_load_path):
             raise Exception("Operator path does not exist. Please train your operator first or check the path passed.")
         for operator_name in self.operations:
-            model_path = os.path.join(router_path, operator_name + ".pkl")
+            model_path = os.path.join(self.model_load_path, operator_name + ".pkl")
             if not os.path.exists(model_path):
-                raise Exception(f"Model for operation {operator_name} not found. Please train your operator for this operation as well.")
+                raise Exception(
+                    f"Model for operation {operator_name} not found. Please train your operator for this operation as well.")
         return self
 
     def __generate_args_prompt(self):
@@ -90,7 +90,8 @@ class Operator:
         '''
         selects which tools to use
         '''
-        predicted_ops = self.router.predict([query], classes_dict)
+        router = LLMRoutingAgent(self.model_load_path, self.routing_threshold)
+        predicted_ops = router.predict([query], classes_dict)
         return predicted_ops[0]
 
     def select_arguments(
@@ -144,14 +145,14 @@ class Operator:
         if training_file and not os.path.exists(training_file):
             print("Training file does not exist. Continuing without it.")
 
-        self.model_load_path = router_save_path + "router.pkl"
-        if os.path.exists(self.model_load_path):
-            print("Operator already trained. Loading from saved path.")
-            self.load(router_save_path)
-            return
-        self.router = LLMRoutingAgent(self.model_load_path, self.routing_threshold)
+        self.model_load_path = router_save_path
+        # if os.path.exists(self.model_load_path):
+        #     print("Operator already trained. Loading from saved path.")
+        #     self.load(router_save_path)
+        #     return
+        router = LLMRoutingAgent(self.model_load_path, self.routing_threshold)
         classes_dict = self.__get_classes_dict()
-        self.router.fit(classes_dict, training_file)
+        router.fit(classes_dict, training_file)
 
     def run(self, query: str):
         '''
@@ -173,6 +174,6 @@ class Operator:
             tool_output = action(**generated_arguments)
             t.append(tool_output)
         return t
-    
+
     def __call__(self, query: str):
         return self.run(query)

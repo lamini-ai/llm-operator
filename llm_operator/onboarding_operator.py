@@ -47,7 +47,7 @@ def inference(queries, operator_save_path):
     for query in queries:
         print(f"\n\nQuery: {query}")
         response = operator(query)
-        print(response)
+        print(f"\nFINAL: {response}")
 
 
 def main():

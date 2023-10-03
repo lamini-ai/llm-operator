@@ -40,7 +40,7 @@ class LLMRoutingAgent:
 
     def train_with_prompt(self, classes_dict):
         for cl, prompt in classes_dict.items():
-            classifier = LaminiClassifier()
+            classifier = LlamaClassifier()
             operation_prompt_dict= {}
             operation_prompt_dict[cl] = prompt
             operation_prompt_dict["not"+cl] = f"is totally opposite and has nothing to do with {cl} which is {prompt}"
