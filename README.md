@@ -42,9 +42,10 @@ message = user_input + orders_api_response
 model_response = self.chat(message, system_prompt=f"Respond to the user, confirming the addition to cart. If response from API is 200, then confirm that the item {item_name} has been placed in the cart, else ask the user to restate their order.")
 ```
 
-See [`FoodDeliveryOperator`](llm_operator/food_delivery_operator.py) for a complete example.
+To really supercharge your chat LLM, see our [`DocsToQA` SDK](https://github.com/lamini-ai/docs-to-qa) for how to prompt-engineer your way into a custom finetuned chat LLM on your raw documents.
 
-### See the Operator finetune in action
+
+### See the Operator Finetune in Action
 This is how we trained the Operator above.
 ```bash
 ./food_delivery_operator.sh --train --operator_save_path models/AnotherFoodDeliveryOperator/ --training_data data/food_delivery.csv
@@ -102,7 +103,7 @@ operator.add_operation(self.search)
 ./food_delivery_operator.sh --train --operator_save_path models/AnotherFoodDeliveryOperator/ --training_data data/food_delivery.csv
 ```
 
-Or in python directly:
+Or, in Python directly:
 ```
 training_data = "data/food_delivery.csv" # extra training data (optional)
 operator_save_path = "models/FoodDeliveryOperator/" # dirpath to save operator for use later
@@ -123,7 +124,7 @@ The CSV data used is really simple and looks like [this](data/food_delivery.csv)
 ./food_delivery_operator.sh --operator_save_path models/AnotherFoodDeliveryOperator/ --query "Add 2 gallons of milk to my cart, please" 
 ```
 
-Or in python directly:
+Or, in Python directly:
 ```
 finetuned_operator = FoodDeliveryOperator().load(operator_save_path)
 
