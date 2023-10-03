@@ -190,4 +190,4 @@ class Operator:
         return tool_output
     
     def __call__(self, query: str):
-        self.run(query)
+        return self.run(query)

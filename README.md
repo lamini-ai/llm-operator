@@ -81,16 +81,15 @@ operator.add_operation(self.search)
 ...
 ```
 
-4. Finetune your Operator! For best results, give it some examples like in [`train_clf.csv`](examples/models/clf/FoodDeliveryOperator/train_clf.csv) for `FoodDeliveryOperator`. Finetuning is a form of training. We suggest giving atleast 50 examples per operation. The more, the better!
+4. Finetune your Operator! For best results, give it some examples like in [`train_clf.csv`](examples/data/food_delivery.csv) for `FoodDeliveryOperator`. Finetuning is a form of training. We suggest giving atleast 50 examples per operation. The more, the better!
 ```
-optional_training_filepath = "examples/models/clf/FoodDeliveryOperator/train_clf.csv" # extra training data
-operator_save_path = "examples/models/clf/FoodDeliveryOperator/router.pkl" # save to use later
+optional_training_filepath = "examples/data/food_delivery.csv" # extra training data
+operator_save_path = "examples/models/clf/FoodDeliveryOperator/" # dirpath to save operator for use later
 
 operator.train(optional_training_filepath, operator_save_path)
 ```
-Fun fact: `clf` stands for classifier, because your operator is actually classifying a user request into different operations!
 
-The CSV data used is really simple and looks like [this](examples/models/clf/FoodDeliveryOperator/train_clf.csv):
+The CSV data used is really simple and looks like [this](examples/data/food_delivery.csv):
 ```
 class_name,data
 search, "how do i track deliveries? substitutions?"
