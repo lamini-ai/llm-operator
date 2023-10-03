@@ -23,8 +23,6 @@ class Operator:
         router_path = path + "router.pkl"
         if not os.path.exists(router_path):
             raise Exception("Operator path does not exist. Please train your operator first or check the path passed.")
-        if router_path and not router_path.endswith(".pkl"):
-            raise Exception("Model pickle file not detected.")
         self.model_load_path = router_path
         self.router = LLMRoutingAgent(self.model_load_path)
         return self
