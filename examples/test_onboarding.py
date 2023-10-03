@@ -1,11 +1,17 @@
 import os
+import argparse
+
 from llm_operator import Operator
-from llama import Lamini
 
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
 class OnboardingOperator(Operator):
+    def __init__(self):
+        super().__init__()
+        self.add_operation(self.setAge)
+        self.add_operation(self.setHeight)
+
     def setAge(self, age: int):
         """
         set the age of a person
@@ -27,40 +33,65 @@ class OnboardingOperator(Operator):
         print("It is indicated to be the height of the user.")
         return f"Height has been set. Height={height}, units={units}"
 
-    def add_operations(self):
-        self.add_operation(self.setAge)
-        self.add_operation(self.setHeight)
 
-    def __call__(self, mssg):
-        self.add_operation(self.setAge)
-        self.add_operation(self.setHeight)
-        return self.run(mssg)
+def train(operator_save_path, training_data=None):
+    """Trains the Operator."""
+    operator = OnboardingOperator()
+    operator.train(training_data, operator_save_path)
+    print('Done training!')
+
+def inference(queries, operator_save_path):
+    operator = OnboardingOperator().load(operator_save_path)
+    
+    for query in queries:
+        print(f"\n\nQuery: {query}")
+        response = operator(query)
+        print(response)
 
 def main():
-    # train and  inference
-    # #optional training file path
-    # training_file = None
-    # operator_save_path = "examples/models/clf/OnboardingOperator/"
-    # operator = OnboardingOperator()
-    # operator.add_operations()
-    # operator.train(training_file, operator_save_path)
-    # query = "who me? I am of age fifty nine, my friend."
-    # response = operator(query)
+    parser = argparse.ArgumentParser()
 
-    # inference
-    operator_save_path = "examples/models/clf/OnboardingOperator/router.pkl"
-    operator = OnboardingOperator().load(operator_save_path)
-    operator.add_operations()
+    parser.add_argument(
+        "--operator_save_path",
+        type=str,
+        help="Path to save the operator / use the saved operator.",
+        default="examples/models/OnboardingOperator/",
+    )
 
-    query2 = "who me? I am of age fifty nine, my friend."
-    print(f"\n\nQuery: {query2}")
-    response2 = operator(query2)
-    print(response2)
-    query3 = "I am 6 feet tall."
-    print(f"\n\nQuery: {query3}")
-    response3 = operator(query3)
-    print(response3)
+    parser.add_argument(
+        "--training_data",
+        type=str,
+        help="Path to dataset (CSV) to train on. Optional.",
+        default="examples/data/onboarding.csv",
+    )
 
+    parser.add_argument(
+        "--train",
+        action="store_true",
+        help="Train the model.",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--query",
+        type=str,
+        nargs="+",
+        action="extend",
+        help="Queries to run",
+        default=[],
+    )
+
+    args = parser.parse_args()
+
+    if args.operator_save_path[-1] != "/":
+        args.operator_save_path += "/"
+
+    if args.train:
+        train(args.operator_save_path, args.training_data)
+    
+    default_queries = ["who me? I am of age fifty nine, my friend.", "I am 6 feet tall."]
+    queries = args.query if args.query else default_queries
+    inference(queries, args.operator_save_path)
 
 if __name__ == '__main__':
     main()

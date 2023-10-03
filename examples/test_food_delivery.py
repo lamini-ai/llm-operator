@@ -5,6 +5,7 @@ import argparse
 from llm_operator import Operator
 from llama import LlamaV2Runner
 
+
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 class FoodDeliveryOperator(Operator):
@@ -15,6 +16,11 @@ class FoodDeliveryOperator(Operator):
         """
         super().__init__()
         self.chat_model = LlamaV2Runner()
+
+        # Add operations here
+        self.add_operation(self.search)
+        self.add_operation(self.order)
+        self.add_operation(self.noop)
 
     def search(self, search_query: str):
         """
@@ -56,31 +62,19 @@ class FoodDeliveryOperator(Operator):
         clean_response = re.sub(r'\.{2,}', '.', model_response)
         return f"Calling general query LLM...\nuser query= {message} \n\noutput=\n{clean_response}"
 
-    def add_operations(self):
-        self.add_operation(self.search)
-        self.add_operation(self.order)
-        self.add_operation(self.noop)
-
-    def __call__(self, mssg):
-        """
-        calls parent class 'run' method to take appropriate action based on the user query.
-        """
-        return self.run(mssg)
 
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
-    foodOperator = FoodDeliveryOperator()
-    foodOperator.add_operations()
-    foodOperator.train(training_data, operator_save_path)
+    operator = FoodDeliveryOperator()
+    operator.train(training_data, operator_save_path)
     print('Done training!')
 
 def inference(queries, operator_save_path):
-    foodOperator = FoodDeliveryOperator().load(operator_save_path)
-    foodOperator.add_operations()
+    operator = FoodDeliveryOperator().load(operator_save_path)
     
     for query in queries:
         print(f"\n\nQuery: {query}")
-        response = foodOperator(query)
+        response = operator(query)
         print(response)
 
 def main():
@@ -90,14 +84,14 @@ def main():
         "--operator_save_path",
         type=str,
         help="Path to save the operator / use the saved operator.",
-        default="examples/models/clf/FoodDeliveryOperator/",
+        default="examples/models/FoodDeliveryOperator/",
     )
 
     parser.add_argument(
         "--training_data",
         type=str,
         help="Path to dataset (CSV) to train on. Optional.",
-        default="examples/models/clf/FoodDeliveryOperator/train_clf.csv",
+        default="examples/data/food_delivery.csv",
     )
 
     parser.add_argument(
@@ -117,6 +111,9 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.operator_save_path[-1] != "/":
+        args.operator_save_path += "/"
 
     if args.train:
         train(args.operator_save_path, args.training_data)
