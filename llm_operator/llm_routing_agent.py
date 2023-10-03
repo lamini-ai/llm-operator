@@ -3,9 +3,9 @@ from lamini import LlamaClassifier
 
 
 class LLMRoutingAgent:
-    def __init__(self, model_load_path):
+    def __init__(self, model_load_path, routing_threshold):
         self.model_load_path = model_load_path
-        self.ROUTING_THRESHOLD = 0.3
+        self.ROUTING_THRESHOLD = routing_threshold
 
     def __load_clf(self, cl):
         '''
@@ -64,7 +64,10 @@ class LLMRoutingAgent:
             pt = []
             for cl, _ in classes_dict.items():
                 clf = self.__load_clf(cl)
-                print(f"\n{d}: {cl} {clf.predict([d])} {clf.predict_proba([d])}")
+                # Debug log: to see performance of the classifier, probabilities of each class and the predicted class
+                # print("-----------------------------------")
+                # print(f"\nPredicting for class={cl} \nPrediction={clf.predict([d])} \nProbabilities={clf.predict_proba([d])}")
+                # print("-----------------------------------")
                 proba = clf.predict_proba([d])[0][0]
                 if proba >= self.ROUTING_THRESHOLD:
                     pt.append(cl)
