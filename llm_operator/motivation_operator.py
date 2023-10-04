@@ -49,14 +49,14 @@ class MotivationOperator(Operator):
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = MotivationOperator()
-    operator.train(training_data, operator_save_path)
+    operator.train(operator_save_path, training_data)
     print('Done training!')
 
 def inference(queries, operator_save_path):
     operator = MotivationOperator().load(operator_save_path)
     
     for query in queries:
-        print(f"\n\nQuery: {query}")
+        print(f"\n\nUser message: {query}")
         response = operator(query)
         print(response)
 
@@ -102,7 +102,10 @@ def main():
     if args.train:
         train(args.operator_save_path, args.training_data)
     
-    default_queries = ["Yay you did it. This is awesome!", "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together."]
+    default_queries = [
+        "Yay you did it. This is awesome!",
+        "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together."
+    ]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
 

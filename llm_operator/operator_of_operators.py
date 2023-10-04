@@ -47,14 +47,14 @@ class MainApp(Operator):
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = MainApp()
-    operator.train(training_data, operator_save_path)
+    operator.train(operator_save_path, training_data)
     print('Done training!')
 
 def inference(queries, operator_save_path):
     operator = MainApp().load(operator_save_path)
     
     for query in queries:
-        print(f"\n\nQuery: {query}")
+        print(f"\n\nUser message: {query}")
         response = operator(query)
         print(response)
 

@@ -133,10 +133,13 @@ class Operator:
             cls[name] = val["description"]
         return cls
 
-    def train(self, training_file, router_save_path):
+    def train(self, router_save_path, training_file):
         '''
         Train the routing agent to decide which tool to use.
         '''
+        if router_save_path[-1] != "/":
+            router_save_path += "/"
+        
         if not os.path.exists(router_save_path):
             os.makedirs(router_save_path)
         if training_file and not os.path.exists(training_file):
