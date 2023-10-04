@@ -119,9 +119,10 @@ def main():
         train(args.operator_save_path, args.training_data)
     
     default_queries = [
-        "I want to order 2 gallons of milk.",
-        "What are the benefits of upgrading my membership?",
-        "Are there any exercises I can do to lose weight?"
+        "can't login",
+        "need more help, can I talk to a person?",
+        "hi there I'd like to understand my bill",
+        """I'm trying to login to my account but I can't remember my password. I tried resetting it but I'm not getting the email. Can you help me?""",
     ]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
