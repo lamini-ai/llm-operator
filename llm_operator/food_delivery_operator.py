@@ -5,8 +5,8 @@ import argparse
 from base_operator import Operator
 from llama import LlamaV2Runner
 
-
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
+
 
 class FoodDeliveryOperator(Operator):
     def __init__(self):
@@ -66,16 +66,19 @@ class FoodDeliveryOperator(Operator):
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = FoodDeliveryOperator()
+    operator.routing_threshold = 0.7
     operator.train(training_data, operator_save_path)
     print('Done training!')
 
+
 def inference(queries, operator_save_path):
     operator = FoodDeliveryOperator().load(operator_save_path)
-    
+
     for query in queries:
         print(f"\n\nQuery: {query}")
         response = operator(query)
         print(response)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -117,13 +120,12 @@ def main():
 
     if args.train:
         train(args.operator_save_path, args.training_data)
-    
-    default_queries = ["I want to order 2 gallons of milk.", "What are the benefits of upgrading my membership?", "Are there any exercises I can do to lose weight?"]
+
+    default_queries = ["I want to order 2 gallons of milk.", "What are the benefits of upgrading my membership?",
+                       "Are there any exercises I can do to lose weight?"]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
 
+
 if __name__ == '__main__':
     main()
-
-
-

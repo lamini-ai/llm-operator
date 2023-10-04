@@ -1,5 +1,5 @@
 import pandas as pd
-from lamini import LlamaClassifier
+from base_classifier import LlamaClassifier2
 
 
 class LLMRoutingAgent:
@@ -12,7 +12,7 @@ class LLMRoutingAgent:
         Load the classifier from the model_save_path
         '''
         save_path = f"{self.model_load_path}/{cl}.pkl"
-        classifier = LlamaClassifier.load(save_path)
+        classifier = LlamaClassifier2.load(save_path)
         return classifier
 
     def __get_negative_data(self, pos_len, d):
@@ -28,19 +28,19 @@ class LLMRoutingAgent:
     def train_with_data(self, classes_dict, training_data_path):
         df = pd.read_csv(training_data_path, quotechar='"')
         for cl in classes_dict:
-            classifier = LlamaClassifier()
+            classifier = LlamaClassifier2()
             positive_data = df.loc[df['class_name'] == cl]['data'].to_list()
             print(f"\nNo. of positive {cl} class samples: {len(positive_data)}")
             classifier.add_data_to_class(cl, positive_data)
-            negative_data = self.__get_negative_data(len(positive_data), df.loc[df['class_name'] != cl])
-            classifier.add_data_to_class("not" + cl, negative_data)
+            # negative_data = self.__get_negative_data(len(positive_data), df.loc[df['class_name'] != cl])
+            # classifier.add_data_to_class("not" + cl, negative_data)
             classifier.train()
             save_path = f"{self.model_load_path}/{cl}.pkl"
             classifier.save(save_path)
 
     def train_with_prompt(self, classes_dict):
         for cl, prompt in classes_dict.items():
-            classifier = LlamaClassifier()
+            classifier = LlamaClassifier2()
             operation_prompt_dict= {}
             operation_prompt_dict[cl] = prompt
             operation_prompt_dict["not"+cl] = f"is totally opposite and has nothing to do with {cl} which is {prompt}"
@@ -77,12 +77,12 @@ class LLMRoutingAgent:
             for cl, _ in classes_dict.items():
                 clf = self.__load_clf(cl)
                 # Debug log: to see performance of the classifier, probabilities of each class and the predicted class
-                # print("-----------------------------------")
-                # print(f"\nPredicting for class={cl} \nPrediction={clf.predict([d])} \nProbabilities={clf.predict_proba([d])}")
-                # print("-----------------------------------")
-                proba = clf.predict_proba([d])[0][0]
-                if proba >= self.ROUTING_THRESHOLD:
-                    pt.append(cl)
+                print("-----------------------------------")
+                print(f"\nPredicting for class={cl} \nPrediction={clf.predict([d])} ")
+                print("-----------------------------------")
+                # proba = clf.predict_proba([d])[0][0]
+                # if proba >= self.ROUTING_THRESHOLD:
+                #     pt.append(cl)
             data_labels.append(pt)
 
         return data_labels
