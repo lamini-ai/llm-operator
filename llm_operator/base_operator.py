@@ -100,6 +100,8 @@ class Operator:
         Predicts and parses the arguments required to call the tool.
         '''
         arguments = self.__get_operation_to_run(operation)['arguments']
+        if arguments is None or len(arguments) == 0:
+            return None
         output_type = {}
         for arg in arguments:
             output_type[arg['name']] = arg['type']
@@ -169,7 +171,11 @@ class Operator:
         generated_arguments = self.select_arguments(query, selected_operation)
         print(f"inferred arguments: {generated_arguments}")
         action = self.__get_operation_to_run(selected_operation)["action"]
-        tool_output = action(**generated_arguments)
+        # TODO: better error handling
+        if generated_arguments:
+            tool_output = action(**generated_arguments)
+        else:
+            tool_output = action()
         return tool_output
     
     def __call__(self, query: str):
