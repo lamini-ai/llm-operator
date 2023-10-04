@@ -73,7 +73,7 @@ def inference(queries, operator_save_path):
     operator = FoodDeliveryOperator().load(operator_save_path)
     
     for query in queries:
-        print(f"\n\nQuery: {query}")
+        print(f"\n\nUser message: {query}")
         response = operator(query)
         print(response)
 

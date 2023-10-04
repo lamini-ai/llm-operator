@@ -44,7 +44,7 @@ def inference(queries, operator_save_path):
     operator = OnboardingOperator().load(operator_save_path)
     
     for query in queries:
-        print(f"\n\nQuery: {query}")
+        print(f"\n\nUser message: {query}")
         response = operator(query)
         print(response)
 
@@ -89,7 +89,10 @@ def main():
     if args.train:
         train(args.operator_save_path, args.training_data)
     
-    default_queries = ["who me? I am of age fifty nine, my friend.", "I am 6 feet tall."]
+    default_queries = [
+        "who me? I am of age fifty nine, my friend.",
+        "I am 6 feet tall."
+    ]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
 
