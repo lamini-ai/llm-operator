@@ -20,29 +20,30 @@ class CustomerSupportOperator(Operator):
         self.add_operation(self.escalate)
         self.add_operation(self.gather_info)
 
-    def create_ticket(self, ticket_summary: str):
+    def create_ticket(self, ticket_category: str):
         """
         User has provided enough information in the chat to create a support ticket about their issue. This includes technical support issues relating to the app, billing, and user's account.
         
         Parameters:
-        ticket_summary: a one-sentence summary of the issue that the user is facing.
+        ticket_category: the category of the user's issue. Eg: app, billing, account.
         """
 
         # Implement the actual business logic here. Eg: call the create ticket API with this string.
-        print("Creating a ticket about the user's issue and categorizing the issue.")
-        return f"Redirecting to create ticket API with the description={ticket_summary}"
+        return f"Redirecting to create ticket API with description={ticket_category}"
 
-    def close_ticket(self, resolution_reason: str):
+    def close_ticket(self, is_closed: str):
         """
         User issue is resolved. Close the ticket.
 
         Parameters:
-        resolution_reason: summary of how the user's issue was resolved.
+        is_closed: 'yes' or 'no'. Indicates whether the ticket is closed.
         """
 
         # Implement the actual business logic here. Eg: call the close ticket API with this string.
-        print("It is indicated that the user's issue is resolved. Closing the ticket")
-        return f"The ticket is closed."
+        if is_closed == "yes":
+            return f"The user's issue is resolved. The ticket is closed."
+        else:
+            return f"The user's issue is not resolved. The ticket is still open."
 
     def escalate(self, severity_level: str):
         """
@@ -53,24 +54,20 @@ class CustomerSupportOperator(Operator):
         """
 
         # Implement the actual business logic here. Eg: call the escalate ticket API with this string.
-        print("It is indicated that the user's issue is not resolved. Escalating the ticket.")
-        return f"The ticket is escalated with the level={severity_level}"
+        return f"The user's issue is not resolved. The ticket is escalated with the level={severity_level}"
 
-    def gather_info(self, chat_history: str, message: str):
+    def gather_info(self, message: str):
         """
         User continues to provide information about their issue. It is helpful to continue asking the user for more information until the issue is resolved.
 
         Parameters:
-        chat_history: a summary of the chat history so far.
         message: the user's last message.
         """
 
         # Implement the actual business logic here. Eg: save this data in 'miscellaneous data' for user search analysis.
-        print(f"chat_history={chat_history}")
-        print("Continuing the conversation with the user.")
         model_response = self.chat_model(message, system_prompt="Your job is to get more details on the user's issue. Answer the user's questions, or ask the user for more details. Use 1 sentence.")
         clean_response = re.sub(r"(\.|\?){2,}", r"\1", model_response)
-        return f"Calling a chat LLM...\nmessage={message}\n\noutput=\n{clean_response}"
+        return f"Continuing the conversation with the user. Calling a chat LLM... \nresponse=\n{clean_response}"
 
 
 def train(operator_save_path, training_data=None):
