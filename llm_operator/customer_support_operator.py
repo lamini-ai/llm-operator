@@ -67,7 +67,7 @@ class CustomerSupportOperator(Operator):
         # Implement the actual business logic here. Eg: save this data in 'miscellaneous data' for user search analysis.
         model_response = self.chat_model(message, system_prompt="Your job is to get more details on the user's issue. Answer the user's questions, or ask the user for more details. Use 1 sentence.")
         clean_response = re.sub(r"(\.|\?){2,}", r"\1", model_response)
-        return f"Continuing the conversation with the user. Calling a chat LLM... \nresponse=\n{clean_response}"
+        return f"Continuing the conversation with the user. Calling a chat LLM... response=\n{clean_response}"
 
 
 def train(operator_save_path, training_data=None):
