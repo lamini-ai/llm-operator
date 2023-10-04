@@ -75,6 +75,7 @@ tl;dr:
     * [`onboarding_operator.py`](llm_operator/onboarding_operator.py): onboards users, extracting demographic data
     * [`motivation_operator.py`](llm_operator/motivation_operator.py): motivates, reminds, and follows up with users
     * [`food_delivery_operator.py`](llm_operator/food_delivery_operator.py): orders or searches for users in a food delivery app
+    * [`customer_support_operator.py`](llm_operator/customer_support_operator.py): handles customer support incl. opening, closing, and escalating tickets
     * [`operator_of_operators.py`](llm_operator/operator_of_operators.py): **Advanced**, combines the onboarding and motivation operators together in a larger app
 
 2. Create operations (functions) that you want the Operator to invoke. Here is the `order` operation for ordering food: 
@@ -139,15 +140,19 @@ Hook your custom LLM Operator up to your production application with a simple [R
 * [`OnboardingOperator`](llm_operator/onboarding_operator.py): calls operations to extract and save user information like name, email, age, etc.
 * [`FoodDeliveryOperator`](llm_operator/food_delivery_operator.py): calls operations to search an FAQ or place an order.
 * [`MotivationOperator`](llm_operator/motivation_operator.py): calls operations to send different types of messages to users to motivate, remind, or follow up with them.
+* [`CustomerSupportOperator.py`](llm_operator/customer_support_operator.py): calls operations to create tickets, resolve them, escalate them, and continue chatting with the user to gather more information.
 * [`MainApp`](llm_operator/operator_of_operators.py): **Advanced** main operator that calls the `OnboardingOperator` and `MotivatorOperator` as operations in a larger app. So yes, you can also train an operator to call other operators, which in turn call the operations you want it to call -- it's operators all the way down!
 
 `Operation` - functions that your Operator can invoke. Multiple operations can reside within an Operator. For example: 
 * [`OnboardingOperator`](llm_operator/onboarding_operator.py): setAge, setEmailAddress, setHeight.
 * [`FoodDeliveryOperator`](llm_operator/food_delivery_operator.py): search, order, noop.
 * [`MotivationOperator`](llm_operator/motivation_operator.py): setReminder, sendCongratsMessage, sendFollowupMessage.
+* [`CustomerSupportOperator.py`](llm_operator/customer_support_operator.py): create_ticket, close_ticket, escalate, gather_info.
+* [`MainApp`](llm_operator/operator_of_operators.py): call_onboarding_operator, call_motivation_operator.
+
 These operations also include parameters that you want the Operator to extract in order to properly invoke these operations. For example, in `setAge`, the desired parameter would be `age` that can be extracted and then, for example, saved in a database about the user.
 
-Connect your Chat LLM to your Operator. An example of this in the [`FoodDeliveryOperator`](llm_operator/motivation_operator.py) when no specific operation is selected, and the user is just chatting generally:
+Connect your Chat LLM to your Operator. An example of this in the [`FoodDeliveryOperator`](llm_operator/food_delivery_operator.py) when no specific operation is selected, and the user is just chatting generally:
 ```
 Query: Are there any exercises I can do to lose weight?
 selected operation: noop
