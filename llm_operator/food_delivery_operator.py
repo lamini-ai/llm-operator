@@ -11,7 +11,7 @@ os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 class FoodDeliveryOperator(Operator):
     def __init__(self):
         """
-        invoke all 'Operator' class methods here.
+        Invoke all 'Operator' class methods here.
         Additionally, define any other entities required within any operation.
         """
         super().__init__()
@@ -60,13 +60,13 @@ class FoodDeliveryOperator(Operator):
         print("It is indicated that this is a general query. So redirecting to a chat LLM.")
         model_response = self.chat_model(message, system_prompt="answer in 3 sentences maximum.")
         clean_response = re.sub(r'\.{2,}', '.', model_response)
-        return f"Calling general query LLM...\nuser query= {message} \n\noutput=\n{clean_response}"
+        return f"Calling a general chat LLM...\nuser_query= {message}\n\noutput=\n{clean_response}"
 
 
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = FoodDeliveryOperator()
-    operator.train(training_data, operator_save_path)
+    operator.train(operator_save_path, training_data)
     print('Done training!')
 
 def inference(queries, operator_save_path):
@@ -118,7 +118,11 @@ def main():
     if args.train:
         train(args.operator_save_path, args.training_data)
     
-    default_queries = ["I want to order 2 gallons of milk.", "What are the benefits of upgrading my membership?", "Are there any exercises I can do to lose weight?"]
+    default_queries = [
+        "I want to order 2 gallons of milk.",
+        "What are the benefits of upgrading my membership?",
+        "Are there any exercises I can do to lose weight?"
+    ]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
 

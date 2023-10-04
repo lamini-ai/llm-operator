@@ -47,7 +47,7 @@ class MainApp(Operator):
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = MainApp()
-    operator.train(training_data, operator_save_path)
+    operator.train(operator_save_path, training_data)
     print('Done training!')
 
 def inference(queries, operator_save_path):
