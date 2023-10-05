@@ -18,11 +18,8 @@ class PlanningMotivationOperator(MotivationOperator):
         self.model_name = "meta-llama/Llama-2-7b-chat-hf"
         self.enumerated_list_pattern = r'\d+\.\s(.*?)(?=\s*\d+\.\s|\Z)'
         
-        self.chat_system_prompt = "Given this observation, what should I say as a response back to the user?"
-        self.chat = BasicModelRunner()
-        
         self.planner_system_prompt = "You make plans about what actions to take, given a user query and the current state of the conversation. Provide 3 steps on what tools need to be used, given the tools available."
-        self.planner = BasicModelRunner()
+        self.planner = BasicModelRunner(model_name=self.model_name)
     
         self.tools_string = ""
         for tool_name, tool_obj in self.operations.items():
@@ -31,21 +28,16 @@ class PlanningMotivationOperator(MotivationOperator):
                 tool_arguments_string += f"{i+1}) {arg['name']} ({arg['type']}): {arg['description']} "
             self.tools_string += f"\n- {tool_name}: {tool_obj['description']}\n{tool_name} has arguments: {tool_arguments_string}"
 
-        self.planning_suffix = "\nMake a 3-step plan with the tools available. In each step, include the tool or description of using the tool (no need to specify exact args)."
+        self.planning_suffix = "\nMake a 3-step plan in an enumerated list, with the tools available. In each step, include the tool or description of using the tool (no need to specify arguments)."
         self.planning_tools_template = "Tools available: {self.tools_string}\n\nConversation:\n"
         self.planning_user_query_template = "User: {user_query}\n{self.planning_suffix}"
         self.planning_prompt_template = self.planning_tools_template + self.planning_user_query_template
         self.planning_prompt_template_chat_history = self.planning_tools_template + "{chat_history}\n" + self.planning_user_query_template
-        self.planning_cue = "1."
+        self.planning_cue = " 1."
 
     def postprocess_enumerated_list(self, text):
         items = [item.strip() for item in re.findall(self.enumerated_list_pattern, text, re.DOTALL)]
         return items
-
-    def chat(self, chat_history, obs):
-        import pdb; pdb.set_trace()
-        prompt = chat_history + obs
-        return self.chat(prompt)
 
     def plan(self, chat_history, user_query):
         if chat_history is not None:

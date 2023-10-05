@@ -11,7 +11,6 @@ from llm_routing_agent import LLMRoutingAgent
 class Operator:
     def __init__(self) -> None:
         self.operations = {}
-        self.prompt = BlankPrompt()
         self.model_name = "meta-llama/Llama-2-7b-chat-hf"
         self.router = None
         self.model_load_path = None
