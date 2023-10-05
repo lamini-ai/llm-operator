@@ -4,7 +4,6 @@ from textwrap import dedent
 from typing import Optional
 
 from llama import Lamini
-from llama.prompts.blank_prompt import BlankPrompt
 from llm_routing_agent import LLMRoutingAgent
 
 
@@ -156,18 +155,21 @@ class Operator:
         self.router.fit(classes_dict, training_file)
         self.router.save(self.model_load_path)
 
-    def run(self, query: str):
+    def run(self, query: str, prompt: str = None):
         '''
-        Gets the routing agent to decide which tool to use.
-        Next, this agent finds out the value of the arguments required to call that tool.
+        Gets the routing agent to decide which tool to use, using the query alone.
+        Next, this agent fills in the arguments required to call that tool, using the full prompt (optional, defaults to using query).
         That tool is then called. Tool output is returned.
         '''
         if not self.model_load_path:
             raise Exception("Router not loaded.")
         
+        print(f"query: {query}")
         selected_operation = self.select_operations(query)
         print(f"selected operation: {selected_operation}")
-        generated_arguments = self.select_arguments(query, selected_operation)
+        if prompt is None:
+            prompt = query
+        generated_arguments = self.select_arguments(prompt, selected_operation)
         print(f"inferred arguments: {generated_arguments}")
         action = self.__get_operation_to_run(selected_operation)["action"]
         # TODO: better error handling
