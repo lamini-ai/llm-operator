@@ -1,7 +1,6 @@
 import os
 import re
 import argparse
-import random
 
 from base_operator import Operator
 from llama import LlamaV2Runner
