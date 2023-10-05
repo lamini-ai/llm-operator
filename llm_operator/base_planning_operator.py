@@ -1,21 +1,15 @@
-import os
 import re 
 
 from llama import BasicModelRunner
 from base_operator import Operator
 
 
-os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
-os.environ["LLAMA_ENVIRONMENT"] = "STAGING"
-
-
 class PlanningOperator(Operator):
     def __init__(self, verbose=True):
         super().__init__()
         
-        self.llama2_prompt_template = "<s>[INST] <<SYS>>{system_prompt}<</SYS>>{instruction}[/INST]{cue}"
-        self.model_name = "meta-llama/Llama-2-7b-chat-hf"
-        self.planner = BasicModelRunner(model_name=self.model_name)
+        self.model_prompt_template = "<s>[INST] <<SYS>>{system_prompt}<</SYS>>{instruction}[/INST]{cue}"
+        self.planner = BasicModelRunner(model_name="meta-llama/Llama-2-7b-chat-hf")
     
         self.create_tools_prompt()
         self.create_planning_prompt_templates()
@@ -65,7 +59,7 @@ class PlanningOperator(Operator):
             planning_suffix=self.planning_suffix
         )
 
-        prompt = self.llama2_prompt_template.format(
+        prompt = self.model_prompt_template.format(
             system_prompt=self.planner_system_prompt,
             instruction=instruction,
             cue=self.planning_cue

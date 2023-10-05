@@ -1,8 +1,6 @@
 import os
 import argparse
-import re 
 
-from llama import BasicModelRunner
 from base_planning_operator import PlanningOperator
 
 
@@ -51,8 +49,13 @@ class PlanningMotivationOperator(PlanningOperator):
 
 
 def main():
+
+    args = argparse.ArgumentParser()
+    args.add_argument("--verbose", action="store_true", help="Print extra info", default=False)
+    args = args.parse_args()
+
     operator_save_path = "models/MotivationOperator/"
-    operator = PlanningMotivationOperator().load(operator_save_path)
+    operator = PlanningMotivationOperator(verbose=args.verbose).load(operator_save_path)
     
     chat_history = """User: Hi, I'm feeling down
 System: I'm sorry to hear that. What would you like to do?"""
