@@ -1,20 +1,27 @@
 import os
 import argparse
-
+from typing import Optional
 from base_operator import Operator
+from base_planning_operator import PlanningOperator
 
-os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
+os.environ["LLAMA_ENVIRONMENT"] = "STAGING"
 
 
-class OnboardingOperator(Operator):
-    def __init__(self):
-        super().__init__()
+class OnboardingOperator(PlanningOperator):
+    def __init__(self, model_name: Optional[str] = None, system_prompt: Optional[str] = None, planning_prompt: Optional[str] = None, verbose=False):
+        super().__init__(model_name, system_prompt, planning_prompt, verbose=verbose)
         self.add_operation(self.setAge)
         self.add_operation(self.setHeight)
+        self.add_operation(self.setWeight)
+        self.add_operation(self.getRecommendation)
+        self.add_operation(self.scheduleWorkout)
+
+    def helper(self):
+        pass
 
     def setAge(self, age: int):
         """
-        set the age of a person
+        given the age of a person, set their age in the system.
 
         Parameters:
         age: age of the person in years.
@@ -24,7 +31,7 @@ class OnboardingOperator(Operator):
 
     def setHeight(self, height: int, units: str):
         """
-        set the height of a person
+        given the height of a person, set their height in the system.
 
         Parameters:
         height: height of the person in numbers.
@@ -33,6 +40,37 @@ class OnboardingOperator(Operator):
         print("It is indicated to be the height of the user.")
         return f"Height has been set. Height={height}, units={units}"
 
+    def setWeight(self, weight: int, units: str):
+        """
+        given the weight of a person, set their weight in the system.
+
+        Parameters:
+        weight: weight of the person in numbers.
+        units: units of the weight like lbs, kgs, stones, etc.
+        """
+        print("It is indicated to be the weight of the user.")
+        return f"Weight has been set. Weight={weight}, units={units}"
+
+    def getRecommendation(self):
+        """
+        suggest a workout to do for the user.
+
+        """
+        print("It is indicated to recommend a workout to the user.")
+        workout_name = "Run&Burn"
+        return f"Suggesting workout {workout_name} for the user."
+
+    def scheduleWorkout(self, workout_name: str, workout_time: str):
+        """
+        sets the workout on user schedule at the given time. if no time is given, keep it static at '01-01-2024T00:00:00'.
+
+        Parameters:
+        workout_name: name of the workout to schedule.
+        workout_time: ISO datetime to schedule the workout.
+        """
+        print("It is indicated to schedule the given workout for the user.")
+        return f"Scheduled {workout_name} for the user at {workout_time}."
+
 
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
@@ -40,61 +78,50 @@ def train(operator_save_path, training_data=None):
     operator.train(operator_save_path, training_data)
     print('Done training!')
 
-def inference(queries, operator_save_path):
-    operator = OnboardingOperator().load(operator_save_path)
-    
-    for query in queries:
-        print(f"\n\nUser message: {query}")
-        response = operator(query)
-        print(response)
 
 def main():
-    parser = argparse.ArgumentParser()
+    args = argparse.ArgumentParser()
+    args.add_argument("--verbose", action="store_true", help="Print extra info", default=False)
+    args = args.parse_args()
 
-    parser.add_argument(
-        "--operator_save_path",
-        type=str,
-        help="Path to save the operator / use the saved operator.",
-        default="models/OnboardingOperator/",
-    )
+    # train("models/OnboardingOperator/")
+    operator_save_path = "models/OnboardingOperator/"
+    # model_name = "mistralai/Mistral-7B-Instruct-v0.1"
+    # model_name = "gpt-4"
+    system_prompt = """You make plans about what actions to take given what information the user provides and what the user is asking. Really think if a tool is required. If not, don't use it.
+        
+Example session:
+User: I want to do a workout to feel better.
+System:
+Plan:
+1. Use the tool getRecommendation to suggest a workout for the user.
+2. Use the tool scheduleWorkout to set the suggested workout on the user's schedule.
 
-    parser.add_argument(
-        "--training_data",
-        type=str,
-        help="Path to dataset (CSV) to train on. Optional.",
-        default="data/onboarding.csv",
-    )
+Example session:
+User: I weigh 100 pounds and I am 6 feet tall.
+System:
+Plan:
+1. Use the tool setWeight to set the user's weight.
+2. Use the tool setHeight to set the user's height."""
 
-    parser.add_argument(
-        "--train",
-        action="store_true",
-        help="Train the model.",
-        default=False,
-    )
+    planning_prompt = "Make a multi-step using only the necessary tools. Do not use a tool if not required. Do not explain the logic of planning. In each step, include the chosen tool name or description (no need to specify arguments). Do not ask the user for more inputs. Propose steps on what information is already available and what tools can be used with it."
+    operator = OnboardingOperator(model_name = None,
+                                  system_prompt=system_prompt,
+                                  planning_prompt=planning_prompt,
+                                  verbose=args.verbose
+                                  ).load(operator_save_path)
 
-    parser.add_argument(
-        "--query",
-        type=str,
-        nargs="+",
-        action="extend",
-        help="Queries to run",
-        default=[],
-    )
+    chat_history = """User: Hi, I'm feeling down
+    System: I'm sorry to hear that. What would you like to do?"""
+    query = "Schedule a workout for me at 5pm today."
+    response = operator(query, chat_history)
+    print(response)
 
-    args = parser.parse_args()
 
-    if args.operator_save_path[-1] != "/":
-        args.operator_save_path += "/"
+    query = "I am James. I am 40 years old and weigh 120lbs."
+    response = operator(query, "")
+    print(response)
 
-    if args.train:
-        train(args.operator_save_path, args.training_data)
-    
-    default_queries = [
-        "who me? I am of age fifty nine, my friend.",
-        "I am 6 feet tall."
-    ]
-    queries = args.query if args.query else default_queries
-    inference(queries, args.operator_save_path)
 
 if __name__ == '__main__':
     main()
