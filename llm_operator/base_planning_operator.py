@@ -1,25 +1,39 @@
 import re 
-
+from typing import Optional
 from llama import BasicModelRunner
 from base_operator import Operator
 
-
 class PlanningOperator(Operator):
-    def __init__(self, verbose=True):
+    def __init__(self, model_name: Optional[str], system_prompt: Optional[str], planning_prompt: Optional[str], verbose = True):
         super().__init__()
         
-        self.model_prompt_template = "<s>[INST] <<SYS>>{system_prompt}<</SYS>>{instruction}[/INST]{cue}"
-        self.planner = BasicModelRunner(model_name="meta-llama/Llama-2-7b-chat-hf")
-    
-        self.create_tools_prompt()
-        self.create_planning_prompt_templates()
+        self.model_prompt_template = "<s>[INST] <<SYS>>\n{system_prompt}\n<</SYS>>\n\n{instruction} [/INST]{cue}"
+        self.planner = BasicModelRunner(model_name = model_name or "meta-llama/Llama-2-13b-chat-hf")
 
-        self.enumerated_list_pattern = r'\d+\.\s(.*?)(?=\s*\d+\.\s|\Z)'
+        self.create_tools_prompt()
+        self.create_planning_prompt_templates(system_prompt, planning_prompt)
+
+        self.enumerated_list_pattern = r'^(?:\d+\.\s+)?(.*?)(?=\d+\.\s+|\Z)'
         self.verbose = verbose
 
-    def create_planning_prompt_templates(self):
-        self.planner_system_prompt = "You make plans about what actions to take, given a user query and the current state of the conversation. Provide 3 steps on what tools need to be used, given the tools available."
-        self.planning_suffix = "\nMake a 3-step plan in an enumerated list, with the tools available. In each step, include the tool or description of using the tool (no need to specify arguments)."
+    def create_planning_prompt_templates(self, system_prompt: Optional[str], planning_prompt: Optional[str]):
+        self.planner_system_prompt = system_prompt or """You make plans about what actions to take given what information the user provides and what the user requires. Really think if a tool is required. If not, don't use it.
+        
+Example session:
+User: I want to do a workout to feel better.
+System:
+Plan:
+1. Use the tool getRecommendation to suggest a workout for the user.
+2. Use the tool scheduleWorkout to set the suggested workout on the user's schedule.
+
+Example session:
+User: I weigh 100 pounds and I am 6 feet tall.
+System:
+Plan:
+1. Use the tool setWeight to set the user's weight.
+2. Use the tool setHeight to set the user's height."""
+
+        self.planning_suffix = planning_prompt or "Make a multi-step using only the necessary tools. Do not use a tool if not required. Do not explain the logic of planning. In each step, include the chosen tool name or description (no need to specify arguments). Do not ask the user for more inputs. Propose steps on what information is already available and what tools can be used with it."
         planning_tools_template = "Tools available: {tools}\n\nConversation:\n"
         planning_user_query_template = "User: {user_query}\n{planning_suffix}"
         
@@ -41,8 +55,13 @@ class PlanningOperator(Operator):
         return tools_string
     
     def postprocess_enumerated_list(self, text):
-        items = [item.strip() for item in re.findall(self.enumerated_list_pattern, text, re.DOTALL)]
-        return items
+        list_items = []
+        items = text.split("\n")
+        for item in items:
+            item = item.strip()
+            if re.match(r"^\d+\.", item):
+                list_items.append(item)
+        return list_items
 
     def plan(self, user_query, chat_history=None):
         tools = self.create_tools_prompt()
@@ -64,7 +83,7 @@ class PlanningOperator(Operator):
             instruction=instruction,
             cue=self.planning_cue
         )
-        
+
         if self.verbose:
             print(f"[PLAN prompt] {prompt}")
             print(f"[PLAN prompt length] {len(prompt)}")
@@ -74,7 +93,6 @@ class PlanningOperator(Operator):
         if self.verbose:
             print(f"[PLAN out] {out}")
         
-        out = out.split("\n\n")[0]
         list_out = self.postprocess_enumerated_list(self.planning_cue + out)
         
         if self.verbose:
@@ -116,7 +134,7 @@ class PlanningOperator(Operator):
         
         plan_string = ""
         for i, step in enumerate(plan):
-            plan_string += f"{i+1}) {step}\n"
+            plan_string += f"{step}\n"
         print(f"Plan:\n{plan_string}")
         
         print("Executing plan...")
