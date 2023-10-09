@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from lamini import LlamaClassifier
+from lamini import LaminiClassifier
 
 
 class LLMRoutingAgent:
