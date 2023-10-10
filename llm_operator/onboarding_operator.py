@@ -104,7 +104,7 @@ def main():
     operator_save_path = "models/OnboardingOperator/"
     # model_name = "gpt-4"
     # train(operator_save_path)
-    system_prompt = """You need to do operations to onboard a user by asking them for their height, weight and age. Ask clarifying questions if you don't understand an input.
+    system_prompt = """The system asks a question to get user details. Use the use input to decide which tool to use for utilising the user information. Ask clarifying questions if something is unclear.
 Example session:
 System: Enter your weight, height and age.
 User: my age is 50.
@@ -118,31 +118,44 @@ System: [PLAN] 1. Calling setAge(50) as user has clarified that 50 is his age.""
                                   verbose=args.verbose
                                   ).load(operator_save_path)
 
-    query = "Enter your weight (in lbs), height(in cms) and age(in years)."
-    chat_history = f"System: {query}\n"
+    while True:
+        query = "Enter your age (in years)."
+        chat_history = f"System: {query}\n"
+        while not operator.age:
+            user_response = input(query)
+            chat_history += f"User: {user_response}\n"
+            operator_resp_followup_query = operator(user_response, chat_history)
+            print(operator_resp_followup_query)
+            chat_history += f"System: {operator_resp_followup_query}\n"
+            query = operator_resp_followup_query
 
-    while not operator.isDone():
-        user_response = input(query)
-        chat_history += f"User: {user_response}\n"
-        operator_resp_followup_query = operator(user_response, chat_history)
-        chat_history += f"System: {operator_resp_followup_query}\n"
-        if operator_resp_followup_query.endswith("Exit."):
-            break
-        print(operator_resp_followup_query)
-        query = operator_resp_followup_query
+        query = "Enter your height (in cm)."
+        chat_history = f"System: {query}\n"
+        while not operator.height:
+            user_response = input(query)
+            chat_history += f"User: {user_response}\n"
+            operator_resp_followup_query = operator(user_response, chat_history)
+            print(operator_resp_followup_query)
+            query = operator_resp_followup_query
 
-
-    # chat_history = """User: Hi, I'm feeling down
-    # System: I'm sorry to hear that. What would you like to do?"""
-    # query = "Schedule a workout for me at 5pm today."
-    # response = operator(query, chat_history)
-    # print(response)
-    #
-    #
-    # query = "I am James. I am 40 years old and weigh 120lbs."
-    # response = operator(query, "")
-    # print(response)
-
+        query = "Enter your weight (in lbs)."
+        chat_history = f"System: {query}\n"
+        while not operator.weight:
+            user_response = input(query)
+            chat_history += f"User: {user_response}\n"
+            operator_resp_followup_query = operator(user_response, chat_history)
+            print(operator_resp_followup_query)
+            query = operator_resp_followup_query
+        break
+    # while not operator.isDone():
+    #     user_response = input(query)
+    #     chat_history += f"User: {user_response}\n"
+    #     operator_resp_followup_query = operator(user_response, chat_history)
+    #     print(operator_resp_followup_query)
+    #     if "has been set" in operator_resp_followup_query:
+    #         chat_history = ""
+    #     chat_history += f"System: {operator_resp_followup_query}\n"
+    #     query = operator_resp_followup_query
 
 if __name__ == '__main__':
     main()
