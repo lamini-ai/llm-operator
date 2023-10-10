@@ -11,7 +11,6 @@ class InquiryOperator(Operator):
 
         self.model_prompt_template = "<s>[INST] <<SYS>>\n{system_prompt}\n<</SYS>>\n\n{instruction} [/INST]{cue}"
         self.planner = BasicModelRunner(model_name=model_name or "meta-llama/Llama-2-13b-chat-hf")
-        # self.planner = BasicModelRunner(model_name=model_name or "mistralai/Mistral-7B-Instruct-v0.1")
         # self.planner = BasicModelRunner(model_name=model_name or "gpt-4")
         planning_tools_template = "Tools available: {tools}\n\nConversation:\n"
         planning_user_query_template = "{planning_suffix}"
@@ -34,6 +33,8 @@ class InquiryOperator(Operator):
         return tools_string
 
     def postprocess_enumerated_list(self, text):
+        # Takes only first operation from the list.
+
         list_items = []
         items = text.split("\n")
         for item in items:
@@ -42,8 +43,6 @@ class InquiryOperator(Operator):
                 break
             if len(item) > 0:
                 list_items.append(item)
-            # if re.match(r"^\d+\.", item):
-            #     list_items.append(item)
         return list_items
 
     def plan(self, user_query, chat_history=None):
@@ -71,7 +70,7 @@ class InquiryOperator(Operator):
         if self.verbose:
             print(f"[PLAN out] {out}")
 
-        list_out = self.postprocess_enumerated_list(self.planning_cue + out)
+        list_out = [self.postprocess_enumerated_list(self.planning_cue + out)[0]]
 
         if self.verbose:
             print(f"[PLAN list]: {list_out}")

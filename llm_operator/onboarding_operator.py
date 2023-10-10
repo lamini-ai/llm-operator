@@ -45,10 +45,10 @@ class OnboardingOperator(InquiryOperator):
 
     def setHeight(self, height: int):
         """
-        given the height of a person, set their height in the system. If the height is in feet and inches, convert it to cm. Eg: 5'6" = 167.
+        given the height of a person, set their height in the system.
 
         Parameters:
-        height: height of the person in numbers.
+        height: height of the person in cms. If the height is in feet and inches, convert it to cm. Eg: 5'6" = 167.
         """
         self.height = height
         print("It is indicated to be the height of the user.")
@@ -56,34 +56,14 @@ class OnboardingOperator(InquiryOperator):
 
     def setWeight(self, weight: int):
         """
-        given the weight of a person, set their weight in the system. If the weight is inany other unit, convert it lbs.
+        given the weight of a person, set their weight in the system.
 
         Parameters:
-        weight: weight of the person in numbers.
+        weight: weight of the person in pounds. If the weight is in any other unit, convert it to lbs.
         """
         self.weight = weight
         print("It is indicated to be the weight of the user.")
         return f"Weight has been set. Weight={weight}"
-    #
-    # def getRecommendation(self):
-    #     """
-    #     suggest a workout to do for the user.
-    #
-    #     """
-    #     print("It is indicated to recommend a workout to the user.")
-    #     workout_name = "Run&Burn"
-    #     return f"Suggesting workout {workout_name} for the user."
-    #
-    # def scheduleWorkout(self, workout_name: str, workout_time: str):
-    #     """
-    #     sets the workout on user schedule at the given time. if no time is given, keep it static at '01-01-2024T00:00:00'.
-    #
-    #     Parameters:
-    #     workout_name: name of the workout to schedule.
-    #     workout_time: ISO datetime to schedule the workout.
-    #     """
-    #     print("It is indicated to schedule the given workout for the user.")
-    #     return f"Scheduled {workout_name} for the user at {workout_time}."
 
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
@@ -108,7 +88,7 @@ def main():
 Example session:
 System: Enter your weight, height and age.
 User: my age is 50.
-System: [PLAN] 1. Calling setAge(50) as user has clarified that 50 is his age."""
+System: [PLAN] 1. Calling setAge(50) as user has provided 50 as his age."""
 
     planning_prompt = "Use the latest user message alongwith chat history to decide which tool/tools to use to act on user information."
 
@@ -118,35 +98,35 @@ System: [PLAN] 1. Calling setAge(50) as user has clarified that 50 is his age.""
                                   verbose=args.verbose
                                   ).load(operator_save_path)
 
-    while True:
-        query = "Enter your age (in years)."
-        chat_history = f"System: {query}\n"
-        while not operator.age:
-            user_response = input(query)
-            chat_history += f"User: {user_response}\n"
-            operator_resp_followup_query = operator(user_response, chat_history)
-            print(operator_resp_followup_query)
-            chat_history += f"System: {operator_resp_followup_query}\n"
-            query = operator_resp_followup_query
+    query = "Enter your age (in years)."
+    chat_history = f"System: {query}\n"
+    while not operator.age:
+        user_response = input(query)
+        chat_history += f"User: {user_response}\n"
+        operator_resp_followup_query = operator(user_response, chat_history)
+        print(operator_resp_followup_query)
+        chat_history += f"System: {operator_resp_followup_query}\n"
+        query = operator_resp_followup_query
 
-        query = "Enter your height (in cm)."
-        chat_history = f"System: {query}\n"
-        while not operator.height:
-            user_response = input(query)
-            chat_history += f"User: {user_response}\n"
-            operator_resp_followup_query = operator(user_response, chat_history)
-            print(operator_resp_followup_query)
-            query = operator_resp_followup_query
+    query = "Enter your height (in cm)."
+    chat_history = f"System: {query}\n"
+    while not operator.height:
+        user_response = input(query)
+        chat_history += f"User: {user_response}\n"
+        operator_resp_followup_query = operator(user_response, chat_history)
+        print(operator_resp_followup_query)
+        chat_history += f"System: {operator_resp_followup_query}\n"
+        query = operator_resp_followup_query
 
-        query = "Enter your weight (in lbs)."
-        chat_history = f"System: {query}\n"
-        while not operator.weight:
-            user_response = input(query)
-            chat_history += f"User: {user_response}\n"
-            operator_resp_followup_query = operator(user_response, chat_history)
-            print(operator_resp_followup_query)
-            query = operator_resp_followup_query
-        break
+    query = "Enter your weight (in lbs)."
+    chat_history = f"System: {query}\n"
+    while not operator.weight:
+        user_response = input(query)
+        chat_history += f"User: {user_response}\n"
+        operator_resp_followup_query = operator(user_response, chat_history)
+        print(operator_resp_followup_query)
+        chat_history += f"System: {operator_resp_followup_query}\n"
+        query = operator_resp_followup_query
     # while not operator.isDone():
     #     user_response = input(query)
     #     chat_history += f"User: {user_response}\n"
