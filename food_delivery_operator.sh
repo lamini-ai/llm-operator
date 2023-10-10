@@ -15,4 +15,12 @@ LOCAL_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 # build
 $LOCAL_DIRECTORY/scripts/build.sh
 
-docker run -v ~/.powerml:/root/.powerml -v $LOCAL_DIRECTORY/data:/app/llm_operator/data -v $LOCAL_DIRECTORY/models:/app/llm_operator/models -it --rm --entrypoint /app/llm_operator/scripts/start-food-delivery.sh llm_operator:latest "$@"
+NETWORK=""
+
+while getopts l flag; do
+    case "${flag}" in
+        l) NETWORK=--network='host';;
+    esac
+done
+
+docker run $NETWORK -v ~/.powerml:/root/.powerml -v $LOCAL_DIRECTORY/data:/app/llm_operator/data -v $LOCAL_DIRECTORY/models:/app/llm_operator/models -it --rm --entrypoint /app/llm_operator/scripts/start-food-delivery.sh llm_operator:latest "$@"
