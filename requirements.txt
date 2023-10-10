@@ -1,2 +1,2 @@
-lamini
+lamini==1.0.0
 pandas
