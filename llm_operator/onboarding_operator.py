@@ -30,7 +30,7 @@ class OnboardingOperator(InquiryOperator):
         Parameters:
         operator_response: response from the operator to user input.
         """
-        print(f"\n\n[Clarifying user input.] {operator_response}")
+        return f"{operator_response} "
 
     def setAge(self, age: int):
         """
@@ -41,7 +41,7 @@ class OnboardingOperator(InquiryOperator):
         """
         print("It is indicated to be the age of the user.")
         self.age = age
-        return f"Age has been set. Age= {age}"
+        return f"Age has been set. Age= {age}. "
 
     def setHeight(self, height: int, units: str):
         """
@@ -53,7 +53,7 @@ class OnboardingOperator(InquiryOperator):
         """
         self.height = height
         print("It is indicated to be the height of the user.")
-        return f"Height has been set. Height={height}, units={units}"
+        return f"Height has been set. Height={height}, units={units}. "
 
     def setWeight(self, weight: int, units: str):
         """
@@ -65,7 +65,7 @@ class OnboardingOperator(InquiryOperator):
         """
         self.weight = weight
         print("It is indicated to be the weight of the user.")
-        return f"Weight has been set. Weight={weight}, units={units}"
+        return f"Weight has been set. Weight={weight}, units={units}. "
     #
     # def getRecommendation(self):
     #     """
@@ -122,18 +122,29 @@ System: [PLAN] 1. Calling setAge(50)."""
                                   verbose=args.verbose
                                   ).load(operator_save_path)
 
-    query = "Enter your weight, height and age."
-    chat_history = f"System: {query}\n"
+    base_query = "Enter your weight, height and age."
+    user_response = ""
+    query= user_response
+    chat_history = ""
 
     while not operator.isDone():
-        user_response = input(query)
+        query += "Please enter your "
+        if not operator.age:
+            query += "age,"
+        if not operator.height:
+            query += "height,"
+        if not operator.weight:
+            query += "weight,"
+        chat_history += f"System: {query}\n"
+        user_response = input(query+"\n")
         chat_history += f"User: {user_response}\n"
         operator_resp_followup_query = operator(user_response, chat_history)
-        chat_history += f"System: {operator_resp_followup_query}\n"
         if operator_resp_followup_query.endswith("Exit."):
             break
         print(operator_resp_followup_query)
         query = operator_resp_followup_query
+
+    print("Onboarding complete.")
     # chat_history = """User: Hi, I'm feeling down
     # System: I'm sorry to hear that. What would you like to do?"""
     # query = "Schedule a workout for me at 5pm today."
