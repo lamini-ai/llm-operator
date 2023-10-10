@@ -120,7 +120,7 @@ def main():
     
     default_queries = [
         "I want to order 2 gallons of milk.",
-        "What are the benefits of upgrading my instacart membership?",
+        "What are the benefits of upgrading my app membership?",
         "Are there any exercises I can do to lose weight?"
     ]
     queries = args.query if args.query else default_queries
