@@ -15,4 +15,4 @@ LOCAL_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 # build
 $LOCAL_DIRECTORY/scripts/build.sh
 
-docker run -v ~/.powerml:/root/.powerml -v $LOCAL_DIRECTORY/data:/app/llm_operator/data -v $LOCAL_DIRECTORY/models:/app/llm_operator/models -it --rm --entrypoint /app/llm_operator/scripts/start-operator-of-operators.sh llm_operator:latest "$@"
+docker run --network="host" -v ~/.powerml:/root/.powerml -v $LOCAL_DIRECTORY/data:/app/llm_operator/data -v $LOCAL_DIRECTORY/models:/app/llm_operator/models -it --rm --entrypoint /app/llm_operator/scripts/start-operator-of-operators.sh llm_operator:latest "$@"
