@@ -8,6 +8,7 @@ from llama import LlamaV2Runner
 
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
+
 class FoodDeliveryOperator(Operator):
     def __init__(self):
         """
@@ -57,9 +58,13 @@ class FoodDeliveryOperator(Operator):
         """
 
         # Implement the actual business logic here. Eg: save this data in 'miscellaneous data' for user search analysis.
-        print("It is indicated that this is a general query. So redirecting to a chat LLM.")
-        model_response = self.chat_model(message, system_prompt="answer in 3 sentences maximum.")
-        clean_response = re.sub(r'\.{2,}', '.', model_response)
+        print(
+            "It is indicated that this is a general query. So redirecting to a chat LLM."
+        )
+        model_response = self.chat_model(
+            message, system_prompt="answer in 3 sentences maximum."
+        )
+        clean_response = re.sub(r"\.{2,}", ".", model_response)
         return f"Calling a general chat LLM...\nuser_query= {message}\n\noutput=\n{clean_response}"
 
 
@@ -67,15 +72,17 @@ def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = FoodDeliveryOperator()
     operator.train(operator_save_path, training_data)
-    print('Done training!')
+    print("Done training!")
+
 
 def inference(queries, operator_save_path):
     operator = FoodDeliveryOperator().load(operator_save_path)
-    
+
     for query in queries:
         print(f"\n\nUser message: {query}")
         response = operator(query)
         print(response)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -110,6 +117,10 @@ def main():
         default=[],
     )
 
+    parser.add_argument(
+        "-l", action="store_true", help="this flag is a no-op to silence errors"
+    )
+
     args = parser.parse_args()
 
     if args.operator_save_path[-1] != "/":
@@ -117,17 +128,15 @@ def main():
 
     if args.train:
         train(args.operator_save_path, args.training_data)
-    
+
     default_queries = [
         "I want to order 2 gallons of milk.",
         "What are the benefits of upgrading my app membership?",
-        "Are there any exercises I can do to lose weight?"
+        "Are there any exercises I can do to lose weight?",
     ]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
-
-
-

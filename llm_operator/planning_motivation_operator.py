@@ -49,14 +49,18 @@ class PlanningMotivationOperator(PlanningOperator):
 
 
 def main():
-
     args = argparse.ArgumentParser()
-    args.add_argument("--verbose", action="store_true", help="Print extra info", default=False)
+    args.add_argument(
+        "--verbose", action="store_true", help="Print extra info", default=False
+    )
+    args.add_argument(
+        "-l", action="store_true", help="this flag is a no-op to silence errors"
+    )
     args = args.parse_args()
 
     operator_save_path = "models/MotivationOperator/"
     operator = PlanningMotivationOperator(verbose=args.verbose).load(operator_save_path)
-    
+
     chat_history = """User: Hi, I'm feeling down
 System: I'm sorry to hear that. What would you like to do?"""
     query = "I want to do a workout to feel better"
@@ -64,5 +68,5 @@ System: I'm sorry to hear that. What would you like to do?"""
     print(response)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

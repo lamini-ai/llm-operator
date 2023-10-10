@@ -8,6 +8,7 @@ from llama import LlamaV2Runner
 
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
+
 class CustomerSupportOperator(Operator):
     def __init__(self):
         super().__init__()
@@ -22,7 +23,7 @@ class CustomerSupportOperator(Operator):
     def create_ticket(self, ticket_category: str):
         """
         User has provided enough information in the chat to create a support ticket about their issue. This includes technical support issues relating to the app, billing, and user's account.
-        
+
         Parameters:
         ticket_category: the category of the user's issue. Eg: app, billing, account.
         """
@@ -64,7 +65,10 @@ class CustomerSupportOperator(Operator):
         """
 
         # Implement the actual business logic here. Eg: save this data in 'miscellaneous data' for user search analysis.
-        model_response = self.chat_model(message, system_prompt="Your job is to get more details on the user's issue. Answer the user's questions, or ask the user for more details. Use 1 sentence.")
+        model_response = self.chat_model(
+            message,
+            system_prompt="Your job is to get more details on the user's issue. Answer the user's questions, or ask the user for more details. Use 1 sentence.",
+        )
         clean_response = re.sub(r"(\.|\?){2,}", r"\1", model_response)
         return f"Continuing the conversation with the user. Calling a chat LLM... response=\n{clean_response}"
 
@@ -73,7 +77,8 @@ def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = CustomerSupportOperator()
     operator.train(operator_save_path, training_data)
-    print('Done training!')
+    print("Done training!")
+
 
 def inference(queries, operator_save_path):
     operator = CustomerSupportOperator().load(operator_save_path)
@@ -81,6 +86,7 @@ def inference(queries, operator_save_path):
         print(f"\n\nUser message: {query}")
         response = operator(query)
         print(response)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -115,11 +121,15 @@ def main():
         default=[],
     )
 
+    parser.add_argument(
+        "-l", action="store_true", help="this flag is a no-op to silence errors"
+    )
+
     args = parser.parse_args()
 
     if args.train:
         train(args.operator_save_path, args.training_data)
-    
+
     default_queries = [
         "can't login",
         "great, thanks!",
@@ -129,8 +139,6 @@ def main():
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
-
-
-

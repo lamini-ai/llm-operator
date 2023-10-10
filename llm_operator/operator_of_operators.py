@@ -11,13 +11,17 @@ os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 class MainApp(Operator):
     def __init__(self):
         super().__init__()
-        
+
         self.onboarding_operator_save_path = "models/OnboardingOperator/"
-        self.onboarding_operator = OnboardingOperator().load(self.onboarding_operator_save_path)
+        self.onboarding_operator = OnboardingOperator().load(
+            self.onboarding_operator_save_path
+        )
 
         self.motivation_operator_save_path = "models/MotivationOperator/"
-        self.motivation_operator = MotivationOperator().load(self.motivation_operator_save_path)
-    
+        self.motivation_operator = MotivationOperator().load(
+            self.motivation_operator_save_path
+        )
+
         self.add_operation(self.call_onboarding_operator)
         self.add_operation(self.call_motivation_operator)
 
@@ -48,15 +52,17 @@ def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = MainApp()
     operator.train(operator_save_path, training_data)
-    print('Done training!')
+    print("Done training!")
+
 
 def inference(queries, operator_save_path):
     operator = MainApp().load(operator_save_path)
-    
+
     for query in queries:
         print(f"\n\nUser message: {query}")
         response = operator(query)
         print(response)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -91,6 +97,10 @@ def main():
         default=[],
     )
 
+    parser.add_argument(
+        "-l", action="store_true", help="this flag is a no-op to silence errors"
+    )
+
     args = parser.parse_args()
 
     if args.operator_save_path[-1] != "/":
@@ -98,16 +108,15 @@ def main():
 
     if args.train:
         train(args.operator_save_path, args.training_data)
-    
+
     default_queries = [
         "You missed your workout yesterday. Just wanted to check in!",
-        "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together.", 
+        "Hey Aaron, hope you are well! I noticed you missed our workout together at Hike in Mt. Abby, Alaska on Monday. It is important to stay consistent with your fitness routine, so I hope you can make it to our next workout together.",
         "I am 6 feet tall.",
     ]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
-
-
