@@ -155,6 +155,18 @@ class Operator:
         self.router.fit(classes_dict, training_file)
         self.router.save(self.model_load_path)
 
+    def select_operations2(self, query):
+        if "clarify" in query:
+            return "clarify"
+        elif "setAge" in query:
+            return "setAge"
+        elif "setWeight" in query:
+            return "setWeight"
+        elif "setHeight" in query:
+            return "setHeight"
+        else:
+            return "clarify"
+
     def run(self, query: str, prompt: str = None):
         '''
         Gets the routing agent to decide which tool to use, using the query alone.
@@ -165,7 +177,7 @@ class Operator:
             raise Exception("Router not loaded.")
         
         print(f"query: {query}, prompt: {prompt}")
-        selected_operation = self.select_operations(query)
+        selected_operation = self.select_operations2(query)
         print(f"selected operation: {selected_operation}")
         if prompt is None:
             prompt = query

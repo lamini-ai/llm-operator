@@ -4,7 +4,7 @@ from typing import Optional
 from base_operator import Operator
 from base_planning_operator import PlanningOperator
 from base_inquiry_operator import InquiryOperator
-
+from llama import BasicModelRunner
 os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
 
 
@@ -30,7 +30,7 @@ class OnboardingOperator(InquiryOperator):
         Parameters:
         operator_response: response from the operator to user input.
         """
-        return f"{operator_response} "
+        return f"{operator_response}"
 
     def setAge(self, age: int):
         """
@@ -41,31 +41,29 @@ class OnboardingOperator(InquiryOperator):
         """
         print("It is indicated to be the age of the user.")
         self.age = age
-        return f"Age has been set. Age= {age}. "
+        return f"Age has been set. Age= {age}"
 
-    def setHeight(self, height: int, units: str):
+    def setHeight(self, height: int):
         """
-        given the height of a person, set their height in the system.
+        given the height of a person, set their height in the system. If the height is in feet and inches, convert it to cm. Eg: 5'6" = 167.
 
         Parameters:
         height: height of the person in numbers.
-        units: units of the height like feet, inches, cm, etc.
         """
         self.height = height
         print("It is indicated to be the height of the user.")
-        return f"Height has been set. Height={height}, units={units}. "
+        return f"Height has been set. Height={height}"
 
-    def setWeight(self, weight: int, units: str):
+    def setWeight(self, weight: int):
         """
-        given the weight of a person, set their weight in the system.
+        given the weight of a person, set their weight in the system. If the weight is inany other unit, convert it lbs.
 
         Parameters:
         weight: weight of the person in numbers.
-        units: units of the weight like lbs, kgs, stones, etc.
         """
         self.weight = weight
         print("It is indicated to be the weight of the user.")
-        return f"Weight has been set. Weight={weight}, units={units}. "
+        return f"Weight has been set. Weight={weight}"
     #
     # def getRecommendation(self):
     #     """
@@ -106,15 +104,13 @@ def main():
     operator_save_path = "models/OnboardingOperator/"
     # model_name = "gpt-4"
     # train(operator_save_path)
-    system_prompt = """You need to do operations to onboard a user by asking them for their height, weight and age. Ask clarifying questions until you have all the information.
+    system_prompt = """You need to do operations to onboard a user by asking them for their height, weight and age. Ask clarifying questions if you don't understand an input.
 Example session:
 System: Enter your weight, height and age.
-User: 50.
-System: Plan: Calling clarify('Is that your height, weight or age?')
-User: That's my age.
-System: [PLAN] 1. Calling setAge(50)."""
+User: my age is 50.
+System: [PLAN] 1. Calling setAge(50) as user has clarified that 50 is his age."""
 
-    planning_prompt = "Based on user input, decide whether to ask clarifying questions or use a tool/tools to act on user information."
+    planning_prompt = "Use the latest user message alongwith chat history to decide which tool/tools to use to act on user information."
 
     operator = OnboardingOperator(model_name=None,
                                   system_prompt=system_prompt,
@@ -122,29 +118,20 @@ System: [PLAN] 1. Calling setAge(50)."""
                                   verbose=args.verbose
                                   ).load(operator_save_path)
 
-    base_query = "Enter your weight, height and age."
-    user_response = ""
-    query= user_response
-    chat_history = ""
+    query = "Enter your weight (in lbs), height(in cms) and age(in years)."
+    chat_history = f"System: {query}\n"
 
     while not operator.isDone():
-        query += "Please enter your "
-        if not operator.age:
-            query += "age,"
-        if not operator.height:
-            query += "height,"
-        if not operator.weight:
-            query += "weight,"
-        chat_history += f"System: {query}\n"
-        user_response = input(query+"\n")
+        user_response = input(query)
         chat_history += f"User: {user_response}\n"
         operator_resp_followup_query = operator(user_response, chat_history)
+        chat_history += f"System: {operator_resp_followup_query}\n"
         if operator_resp_followup_query.endswith("Exit."):
             break
         print(operator_resp_followup_query)
         query = operator_resp_followup_query
 
-    print("Onboarding complete.")
+
     # chat_history = """User: Hi, I'm feeling down
     # System: I'm sorry to hear that. What would you like to do?"""
     # query = "Schedule a workout for me at 5pm today."
