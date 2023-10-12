@@ -159,15 +159,16 @@ Latest user message: I'm 120 lbs, and 5' 10"""
     prompt_template = dedent(prompt_template)
     extractor_llm = Lamini("structured", "meta-llama/Llama-2-13b-chat-hf", prompt_template)
     output_type = { "age": "str", "weight": "str", "height": "str" }
+    # output_type = { "age": "int", "weight": "int", "height": "int" }
     latest_user_message = "I'm 95 kg, and 6ft 1"
     chat_history = "System: What's your age?\nUser: 40\nSystem: Great, I have noted your age as 43. Now, can you tell me your height?\n"
-    input = {
+    input_dict = {
         "chat_history": chat_history,
         "demographic_data": demographic_data,
         "latest_user_message": str(latest_user_message)
     }
     model_response = extractor_llm(
-            input,
+            input_dict,
             output_type,
             stop_tokens=["</s>"]
         )
