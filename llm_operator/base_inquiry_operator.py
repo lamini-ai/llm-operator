@@ -6,18 +6,17 @@ from base_operator import Operator
 
 class InquiryOperator(Operator):
     def __init__(self, model_name: Optional[str], system_prompt: Optional[str], planning_prompt: Optional[str],
-                 verbose=True):
+                 verbose=False):
         super().__init__()
 
         self.model_prompt_template = "<s>[INST] <<SYS>>\n{system_prompt}\n<</SYS>>\n\n{instruction} [/INST]{cue}"
         self.planner = BasicModelRunner(model_name=model_name or "meta-llama/Llama-2-13b-chat-hf")
-        # self.planner = BasicModelRunner(model_name=model_name or "gpt-4")
         planning_tools_template = "Tools available: {tools}\n\nConversation:\n"
         planning_user_query_template = "{planning_suffix}"
         self.planning_prompt_template_chat_history = planning_tools_template + "{chat_history}\n" + planning_user_query_template
         self.system_prompt = system_prompt
         self.planning_prompt = planning_prompt
-        self.planning_cue = " System: [PLAN] 1. "
+        self.planning_cue = " System: I will use the"
         self.verbose = verbose
         self.step_prompt_template = "Chat history: {chat_history}\n\nLatest user message: {query}\n\nAction to take: {step}"
 
@@ -84,9 +83,7 @@ class InquiryOperator(Operator):
                 print(f"Action #{i + 1}: {step}")
 
             prompt = self.step_prompt_template.format(chat_history=chat_history, query=query, step=step)
-            print(f"execute_plan: {prompt}")
 
-            print(f"step: {step}, prompt: {prompt}")
             obs = self.run(step, prompt)
             answers.append(obs)
         return ''.join(answers)

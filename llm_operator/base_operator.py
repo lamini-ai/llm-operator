@@ -176,13 +176,11 @@ class Operator:
         if not self.model_load_path:
             raise Exception("Router not loaded.")
         
-        print(f"query: {query}, prompt: {prompt}")
-        selected_operation = self.select_operations2(query)
+        selected_operation = self.select_operations(query)
         print(f"selected operation: {selected_operation}")
         if prompt is None:
             prompt = query
 
-        print(f"\nArguments query: {prompt}\n")
         generated_arguments = self.select_arguments(prompt, selected_operation)
         print(f"inferred arguments: {generated_arguments}")
         action = self.__get_operation_to_run(selected_operation)["action"]

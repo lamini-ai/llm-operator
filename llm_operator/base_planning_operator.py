@@ -136,6 +136,7 @@ Plan:
         for i, step in enumerate(plan):
             plan_string += f"{step}\n"
         print(f"Plan:\n{plan_string}")
+        print(plan)
         
         print("Executing plan...")
         prev_obs = self.execute_plan(plan, query, chat_history)
