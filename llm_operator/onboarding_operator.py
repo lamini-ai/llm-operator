@@ -3,40 +3,52 @@ import argparse
 
 from base_operator import Operator
 
-os.environ["LLAMA_ENVIRONMENT"] = "PRODUCTION"
+os.environ["LLAMA_ENVIRONMENT"] = "STAGING"
 
 
 class OnboardingOperator(Operator):
     def __init__(self):
         super().__init__()
-        self.add_operation(self.setAge)
-        self.add_operation(self.setHeight)
+        self.add_operation(self.setDateOfBirth)
+        self.add_operation(self.setGender)
+        self.add_operation(self.setWeight)
 
-    def setAge(self, age: int):
+    def setGender(self, gender: str):
         """
-        set the age of a person
+        set the gender of the person. If it is unclear if 'Male' or 'Female', then set it as 'Unspecified'.
 
         Parameters:
-        age: age of the person in years.
+        gender: gender of the person. Either 'Male', 'Female' or 'Unspecified'.
         """
         print("It is indicated to be the age of the user.")
-        return f"Age has been set. Age= {age}"
+        return f"Gender has been set. DOB= {gender}"
 
-    def setHeight(self, height: int, units: str):
+    def setDateOfBirth(self, dob: str):
         """
-        set the height of a person
+        set the date of birth of a person. If date of birth is unclear, set it as 0000-00-00. If no year is given, assume it is 0000.
 
         Parameters:
-        height: height of the person in numbers.
+        dob: date  of birth in ISO date format.
+        """
+        print("It is indicated to be the age of the user.")
+        return f"DOB has been set. DOB= {dob}"
+
+    def setWeight(self, weight: int, units: str):
+        """
+        set the weight of the person. if no weight is given, set it as 0. If no units are given, assume it is in lbs.
+
+        Parameters:
+        weight: height of the person in numbers.
         units: units of the height like feet, inches, cm, etc.
         """
         print("It is indicated to be the height of the user.")
-        return f"Height has been set. Height={height}, units={units}"
+        return f"Weight has been set. Height={weight}, units={units}"
 
 
 def train(operator_save_path, training_data=None):
     """Trains the Operator."""
     operator = OnboardingOperator()
+    print(training_data)
     operator.train(operator_save_path, training_data)
     print("Done training!")
 
@@ -96,8 +108,9 @@ def main():
         train(args.operator_save_path, args.training_data)
 
     default_queries = [
-        "who me? I am of age fifty nine, my friend.",
-        "I am 6 feet tall.",
+        "I consider myself a man.",
+        "I weigh 150 stones",
+        "I am Genderfluid.",
     ]
     queries = args.query if args.query else default_queries
     inference(queries, args.operator_save_path)
