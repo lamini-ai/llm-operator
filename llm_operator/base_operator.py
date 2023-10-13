@@ -10,7 +10,7 @@ from llm_routing_agent import LLMRoutingAgent
 class Operator:
     def __init__(self) -> None:
         self.operations = {}
-        self.model_name = "meta-llama/Llama-2-7b-chat-hf"
+        self.model_name = "meta-llama/Llama-2-13b-chat-hf"
         self.router = None
         self.model_load_path = None
 
@@ -61,7 +61,16 @@ class Operator:
                 param_description = match.group(1).strip()
             else:
                 param_description = None
-            args.append({"name": key, "type": "string", "description": param_description})
+
+            type_match = re.search(r"<class '(\w+)'>", str(value))
+            if type_match:
+                param_type = type_match.group(1).strip()
+            else:
+                param_type = 'str'
+            if param_type not in ['str', 'int', 'float']:
+                print("[WARN] Currently supporting only str, int and float types.")
+                param_type = 'str'
+            args.append({"name": key, "type": param_type, "description": param_description})
         return args
 
     def add_operation(
@@ -111,8 +120,7 @@ class Operator:
         model = self.__generate_args_prompt()
         model_response = model(
             input,
-            output_type,
-            stop_tokens=["</s>"]
+            output_type
         )
         return model_response
 
@@ -139,7 +147,7 @@ class Operator:
         '''
         if router_save_path[-1] != "/":
             router_save_path += "/"
-        
+
         if not os.path.exists(router_save_path):
             os.makedirs(router_save_path)
         if training_file and not os.path.exists(training_file):
@@ -163,7 +171,7 @@ class Operator:
         '''
         if not self.model_load_path:
             raise Exception("Router not loaded.")
-        
+
         print(f"query: {query}")
         selected_operation = self.select_operations(query)
         print(f"selected operation: {selected_operation}")
@@ -178,6 +186,6 @@ class Operator:
         else:
             tool_output = action()
         return tool_output
-    
+
     def __call__(self, query: str):
         return self.run(query)
