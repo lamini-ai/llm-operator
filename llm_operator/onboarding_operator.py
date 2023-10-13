@@ -109,6 +109,7 @@ def main():
 
     default_queries = [
         "I consider myself a man.",
+        "I was born on the Winter Solstice of 1980.",
         "I weigh 150 stones",
         "I am Genderfluid.",
     ]
